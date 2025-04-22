@@ -35,3 +35,28 @@ create table market_confirmations (
   confirmed_at      timestamp not null default now(),
   unique (market_id, confirm_date, confirmation_type)
 );
+
+-- Enable RLS on the sensitive tables
+alter table markets enable row level security;
+alter table market_confirmations enable row level security;
+
+-- Allow all authenticated users to SELECT from markets
+create policy "Authenticated users can read markets"
+on markets
+for select
+to authenticated
+using (true);
+
+-- Allow authenticated users to SELECT their own confirmations
+create policy "Authenticated users can read confirmations"
+on market_confirmations
+for select
+to authenticated
+using (true);
+
+-- Allow authenticated users to INSERT confirmations
+create policy "Authenticated users can insert confirmations"
+on market_confirmations
+for insert
+to authenticated
+with check (true);
