@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mapbox styles */
+.mapboxgl-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure the map container takes up space */
+.map-container {
+  width: 100%;
+  height: 400px;
+}
+
 body {
   margin: 0;
   min-width: 320px;

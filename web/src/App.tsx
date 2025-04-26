@@ -1,53 +1,90 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { Map } from './components/Map'
+import { Market } from './types/Market'
 import './App.css'
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-console.log('Supabase URL:', supabaseUrl)
-console.log('Supabase Key exists:', !!supabaseKey)
-
 const supabase = createClient(supabaseUrl, supabaseKey)
-
-// Market type definition
-interface Market {
-  market_id: number
-  name: string
-  description: string | null
-  address: string | null
-  website_url: string | null
-}
 
 function App() {
   const [markets, setMarkets] = useState<Market[]>([])
+  const [selectedMarket, setSelectedMarket] = useState<Market | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchMarkets() {
-      console.log('Fetching markets...')
       try {
-        // Test the connection first
-        const { data: testData, error: testError } = await supabase
-          .from('markets')
-          .select('count')
-          .single()
-        
-        console.log('Connection test:', { testData, testError })
-
-        // Fetch the actual data
         const { data, error } = await supabase
-          .from('markets')
-          .select('market_id, name, description, address, website_url')
-          .order('name')
-        
-        console.log('Received data:', data)
-        console.log('Received error:', error)
+          .rpc('get_markets_with_locations')
         
         if (error) throw error
-        setMarkets(data || [])
+
+        console.log('Raw market data:', JSON.stringify(data, null, 2))
+        console.log('Number of markets:', data?.length || 0)
+
+        // Transform PostGIS point to GeoJSON format
+        const marketsWithLocation = (data || []).map(market => {
+          // Debug log for each market's location
+          console.log(`Market ${market.name} location:`, market.location)
+          
+          if (!market.location) {
+            console.warn(`Market ${market.name} has no location data`)
+            return {
+              ...market,
+              location: {
+                type: 'Point',
+                coordinates: [-2.5879, 51.4545] as [number, number] // Default to Bristol center
+              }
+            }
+          }
+
+          // Handle string location (PostGIS format)
+          if (typeof market.location === 'string') {
+            const matches = market.location.match(/POINT\(([\d.-]+)\s+([\d.-]+)\)/)
+            if (!matches) {
+              console.warn(`Invalid location format for market ${market.name}:`, market.location)
+              return {
+                ...market,
+                location: {
+                  type: 'Point',
+                  coordinates: [-2.5879, 51.4545] as [number, number] // Default to Bristol center
+                }
+              }
+            }
+            
+            const lng = parseFloat(matches[1])
+            const lat = parseFloat(matches[2])
+            
+            // Validate coordinates
+            if (isNaN(lng) || isNaN(lat) || !isFinite(lng) || !isFinite(lat)) {
+              console.warn(`Invalid coordinates for market ${market.name}:`, { lng, lat })
+              return {
+                ...market,
+                location: {
+                  type: 'Point',
+                  coordinates: [-2.5879, 51.4545] as [number, number] // Default to Bristol center
+                }
+              }
+            }
+
+            return {
+              ...market,
+              location: {
+                type: 'Point',
+                coordinates: [lng, lat] as [number, number]
+              }
+            }
+          }
+
+          // If location is already in GeoJSON format
+          return market
+        })
+        
+        setMarkets(marketsWithLocation)
       } catch (e) {
         console.error('Error fetching markets:', e)
         setError(e instanceof Error ? e.message : 'An error occurred')
@@ -63,35 +100,49 @@ function App() {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Bristol Markets ({markets.length})</h1>
-      {markets.length === 0 ? (
-        <div className="text-gray-600">No markets found</div>
-      ) : (
-        <div className="space-y-4">
-          {markets.map(market => (
-            <div key={market.market_id} className="border rounded-lg p-4 shadow bg-white">
-              <h2 className="text-xl font-semibold">{market.name}</h2>
-              {market.description && (
-                <p className="mt-2 text-gray-600">{market.description}</p>
-              )}
-              {market.address && (
-                <p className="mt-2 text-gray-500">{market.address}</p>
-              )}
-              {market.website_url && (
-                <a
-                  href={market.website_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 text-blue-500 hover:underline block"
-                >
-                  Visit website
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      
+      {/* Map Section */}
+      <div className="mb-8">
+        <Map 
+          markets={markets} 
+          onMarketSelect={setSelectedMarket}
+        />
+      </div>
+
+      {/* Market List Section */}
+      <div className="space-y-4">
+        {markets.map(market => (
+          <div 
+            key={market.market_id} 
+            className={`border rounded-lg p-4 shadow bg-white transition-colors ${
+              selectedMarket?.market_id === market.market_id 
+                ? 'border-blue-500 ring-2 ring-blue-200' 
+                : ''
+            }`}
+            onClick={() => setSelectedMarket(market)}
+          >
+            <h2 className="text-xl font-semibold">{market.name}</h2>
+            {market.description && (
+              <p className="mt-2 text-gray-600">{market.description}</p>
+            )}
+            {market.address && (
+              <p className="mt-2 text-gray-500">{market.address}</p>
+            )}
+            {market.website_url && (
+              <a
+                href={market.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 text-blue-500 hover:underline block"
+              >
+                Visit website
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
