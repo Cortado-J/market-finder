@@ -11,7 +11,9 @@ mapboxgl.accessToken = mapboxToken
 
 interface MapProps {
   markets: Market[]
-  onMarketSelect?: (market: Market) => void
+  selectedMarket: Market | null
+  onMarketSelect: (market: Market) => void
+  userLocation: [number, number] // [longitude, latitude]
 }
 
 function parseLocation(location: Market['location']): [number, number] | null {
@@ -26,7 +28,22 @@ function parseLocation(location: Market['location']): [number, number] | null {
   return location.coordinates
 }
 
-export function Map({ markets, onMarketSelect }: MapProps) {
+function calculateDistance(
+  [lon1, lat1]: [number, number],
+  [lon2, lat2]: [number, number]
+): number {
+  const R = 6371 // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  return R * c
+}
+
+export function Map({ markets, selectedMarket, onMarketSelect, userLocation }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -59,16 +76,71 @@ export function Map({ markets, onMarketSelect }: MapProps) {
     }
   }, [])
 
-  // Add markers when markets change
+  // Add user location marker
+  useEffect(() => {
+    const currentMap = map.current
+    if (!currentMap || !userLocation) return
+
+    // Create user location marker
+    const el = document.createElement('div')
+    el.className = 'user-location'
+    el.style.width = '16px'
+    el.style.height = '16px'
+    el.style.backgroundColor = '#4B89F0'
+    el.style.borderRadius = '50%'
+    el.style.border = '3px solid white'
+    el.style.boxShadow = '0 0 0 2px #4B89F0'
+
+    // Add accuracy radius
+    const accuracyRadius = document.createElement('div')
+    accuracyRadius.className = 'accuracy-radius'
+    accuracyRadius.style.position = 'absolute'
+    accuracyRadius.style.borderRadius = '50%'
+    accuracyRadius.style.width = '50px'
+    accuracyRadius.style.height = '50px'
+    accuracyRadius.style.backgroundColor = 'rgba(75, 137, 240, 0.1)'
+    accuracyRadius.style.border = '2px solid rgba(75, 137, 240, 0.2)'
+    accuracyRadius.style.transform = 'translate(-50%, -50%)'
+    el.appendChild(accuracyRadius)
+
+    // Add marker to map
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat(userLocation)
+      .addTo(currentMap)
+
+    // Store marker reference
+    markersRef.current.push(marker)
+
+    // Center map on user location
+    currentMap.flyTo({
+      center: userLocation,
+      zoom: 13
+    })
+
+  }, [userLocation])
+
+  // Add market markers
   useEffect(() => {
     const currentMap = map.current
     if (!currentMap) return
 
     clearMarkers()
 
+    // Sort markets by distance from user location
+    const marketsWithDistance = markets
+      .map(market => {
+        const coords = parseLocation(market.location)
+        return {
+          market,
+          coordinates: coords,
+          distance: coords ? calculateDistance(userLocation, coords) : Infinity
+        }
+      })
+      .sort((a, b) => a.distance - b.distance)
+
     // Add markers for each market
-    markets.forEach((market) => {
-      const coordinates = parseLocation(market.location)
+    marketsWithDistance.forEach((item, index) => {
+      const { market, coordinates } = item
       if (!coordinates) return
 
       const [lng, lat] = coordinates
@@ -83,6 +155,13 @@ export function Map({ markets, onMarketSelect }: MapProps) {
       el.style.border = '2px solid white'
       el.style.cursor = 'pointer'
       el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)'
+      el.style.display = 'flex'
+      el.style.alignItems = 'center'
+      el.style.justifyContent = 'center'
+      el.style.color = 'white'
+      el.style.fontSize = '12px'
+      el.style.fontWeight = 'bold'
+      el.innerText = `${index + 1}`
 
       // Add popup
       const popup = new mapboxgl.Popup({ offset: 25 })

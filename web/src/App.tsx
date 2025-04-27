@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Map } from './components/Map'
+import { MarketList } from './components/MarketList'
 import { Market } from './types/Market'
 import './App.css'
 
@@ -8,6 +9,9 @@ import './App.css'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
+
+// Default location coordinates for BS7 8LZ
+const defaultLocation: [number, number] = [-2.5973, 51.4847]
 
 function App() {
   const [markets, setMarkets] = useState<Market[]>([])
@@ -27,7 +31,7 @@ function App() {
         console.log('Number of markets:', data?.length || 0)
 
         // Transform PostGIS point to GeoJSON format
-        const marketsWithLocation = (data || []).map(market => {
+        const marketsWithLocation = (data || []).map((market: any) => {
           // Debug log for each market's location
           console.log(`Market ${market.name} location:`, market.location)
           
@@ -100,48 +104,22 @@ function App() {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Bristol Markets ({markets.length})</h1>
-      
-      {/* Map Section */}
-      <div className="mb-8">
-        <Map 
-          markets={markets} 
+    <div className="app">
+      <div className="content">
+        <div className="map-container" style={{ height: '400px', marginBottom: '20px' }}>
+          <Map
+            markets={markets}
+            selectedMarket={selectedMarket}
+            userLocation={defaultLocation}
+            onMarketSelect={setSelectedMarket}
+          />
+        </div>
+        <MarketList
+          markets={markets}
+          selectedMarket={selectedMarket}
           onMarketSelect={setSelectedMarket}
+          userLocation={defaultLocation}
         />
-      </div>
-
-      {/* Market List Section */}
-      <div className="space-y-4">
-        {markets.map(market => (
-          <div 
-            key={market.market_id} 
-            className={`border rounded-lg p-4 shadow bg-white transition-colors ${
-              selectedMarket?.market_id === market.market_id 
-                ? 'border-blue-500 ring-2 ring-blue-200' 
-                : ''
-            }`}
-            onClick={() => setSelectedMarket(market)}
-          >
-            <h2 className="text-xl font-semibold">{market.name}</h2>
-            {market.description && (
-              <p className="mt-2 text-gray-600">{market.description}</p>
-            )}
-            {market.address && (
-              <p className="mt-2 text-gray-500">{market.address}</p>
-            )}
-            {market.website_url && (
-              <a
-                href={market.website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 text-blue-500 hover:underline block"
-              >
-                Visit website
-              </a>
-            )}
-          </div>
-        ))}
       </div>
     </div>
   )
