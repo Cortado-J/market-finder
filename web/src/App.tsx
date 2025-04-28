@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Map } from './components/Map'
+import { MarketList } from './components/MarketList'
 import { Market } from './types/Market'
 import './App.css'
 
@@ -8,6 +9,9 @@ import './App.css'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
+
+// Default location coordinates for BS7 8LZ
+const defaultLocation: [number, number] = [-2.5973, 51.4847]
 
 function App() {
   const [markets, setMarkets] = useState<Market[]>([])
@@ -18,33 +22,53 @@ function App() {
   useEffect(() => {
     async function fetchMarkets() {
       try {
-        const { data, error } = await supabase
-          .rpc('get_markets_with_locations')
+        // First get raw markets data with opening_hours
+        const { data: rawData, error: rawError } = await supabase
+          .from('markets')
+          .select('market_id, name, opening_hours')
         
+        if (rawError) throw rawError
+        console.log('Raw data from markets table:', rawData)
+        
+        // Create an object mapping market_id to opening_hours
+        const openingHoursMap: {[key: number]: string} = {};
+        rawData?.forEach((market: any) => {
+          openingHoursMap[market.market_id] = market.opening_hours;
+        });
+        
+        console.log('Opening hours map:', openingHoursMap);
+        
+        // Get market data from RPC function for locations
+        const { data: marketsData, error } = await supabase.rpc('get_markets_with_locations');
         if (error) throw error
-
-        console.log('Raw market data:', JSON.stringify(data, null, 2))
-        console.log('Number of markets:', data?.length || 0)
-
+        
+        console.log('Raw market data:', marketsData)
+        console.log('First market:', marketsData?.[0])
+        console.log('Market fields:', marketsData?.[0] ? Object.keys(marketsData[0]) : [])
+        
         // Transform PostGIS point to GeoJSON format
-        const marketsWithLocation = (data || []).map(market => {
-          // Debug log for each market's location
-          console.log(`Market ${market.name} location:`, market.location)
-          
+        const marketsWithLocation = (marketsData || []).map((market: any) => {
           if (!market.location) {
             console.warn(`Market ${market.name} has no location data`)
-            return {
-              ...market,
+            const result = {
+              market_id: market.market_id,
+              name: market.name,
+              description: market.description,
+              address: market.address,
+              website_url: market.website_url,
+              opening_hours: openingHoursMap[market.market_id] || null,
               location: {
                 type: 'Point',
                 coordinates: [-2.5879, 51.4545] as [number, number] // Default to Bristol center
               }
             }
+            console.log('Market with no location:', market.name, 'Opening hours:', result.opening_hours)
+            return result
           }
 
           // Handle string location (PostGIS format)
           if (typeof market.location === 'string') {
-            const matches = market.location.match(/POINT\(([\d.-]+)\s+([\d.-]+)\)/)
+            const matches = market.location.match(/POINT\(([-\d.-]+)\s+([-\d.-]+)\)/)
             if (!matches) {
               console.warn(`Invalid location format for market ${market.name}:`, market.location)
               return {
@@ -71,19 +95,31 @@ function App() {
               }
             }
 
-            return {
-              ...market,
+            const transformed = {
+              market_id: market.market_id,
+              name: market.name,
+              description: market.description,
+              address: market.address,
+              website_url: market.website_url,
+              opening_hours: openingHoursMap[market.market_id] || null,
               location: {
                 type: 'Point',
-                coordinates: [lng, lat] as [number, number]
+                coordinates: [parseFloat(matches[1]), parseFloat(matches[2])] as [number, number]
               }
             }
+            console.log('Market with location:', market.name, 'Opening hours:', transformed.opening_hours)
+            return transformed
           }
 
           // If location is already in GeoJSON format
-          return market
+          return {
+            ...market,
+            opening_hours: openingHoursMap[market.market_id] || null
+          }
         })
         
+        console.log('First transformed market:', marketsWithLocation[0])
+        console.log('Transformed market fields:', Object.keys(marketsWithLocation[0]))
         setMarkets(marketsWithLocation)
       } catch (e) {
         console.error('Error fetching markets:', e)
@@ -100,48 +136,22 @@ function App() {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Bristol Markets ({markets.length})</h1>
-      
-      {/* Map Section */}
-      <div className="mb-8">
-        <Map 
-          markets={markets} 
+    <div className="app">
+      <div className="content">
+        <div className="map-container" style={{ height: '400px', marginBottom: '20px' }}>
+          <Map
+            markets={markets}
+            selectedMarket={selectedMarket}
+            userLocation={defaultLocation}
+            onMarketSelect={setSelectedMarket}
+          />
+        </div>
+        <MarketList
+          markets={markets}
+          selectedMarket={selectedMarket}
           onMarketSelect={setSelectedMarket}
+          userLocation={defaultLocation}
         />
-      </div>
-
-      {/* Market List Section */}
-      <div className="space-y-4">
-        {markets.map(market => (
-          <div 
-            key={market.market_id} 
-            className={`border rounded-lg p-4 shadow bg-white transition-colors ${
-              selectedMarket?.market_id === market.market_id 
-                ? 'border-blue-500 ring-2 ring-blue-200' 
-                : ''
-            }`}
-            onClick={() => setSelectedMarket(market)}
-          >
-            <h2 className="text-xl font-semibold">{market.name}</h2>
-            {market.description && (
-              <p className="mt-2 text-gray-600">{market.description}</p>
-            )}
-            {market.address && (
-              <p className="mt-2 text-gray-500">{market.address}</p>
-            )}
-            {market.website_url && (
-              <a
-                href={market.website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 text-blue-500 hover:underline block"
-              >
-                Visit website
-              </a>
-            )}
-          </div>
-        ))}
       </div>
     </div>
   )
