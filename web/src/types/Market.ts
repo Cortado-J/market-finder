@@ -4,6 +4,7 @@ export interface Market {
   description: string | null
   address: string | null
   website_url: string | null
+  opening_hours: string | null  // OpenStreetMap opening_hours format
   location: string | {
     type: string
     coordinates: [number, number] // [longitude, latitude]

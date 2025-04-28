@@ -44,152 +44,102 @@ function calculateDistance(
 }
 
 export function Map({ markets, selectedMarket, onMarketSelect, userLocation }: MapProps) {
-  const mapContainer = useRef<HTMLDivElement>(null)
-  const map = useRef<mapboxgl.Map | null>(null)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
+  const mapContainer = useRef<HTMLDivElement | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
+  const homeMarker = useRef<mapboxgl.Marker | null>(null)
 
   const clearMarkers = useCallback(() => {
-    markersRef.current.forEach(marker => marker.remove())
+    markersRef.current.forEach((marker: mapboxgl.Marker) => marker.remove())
     markersRef.current = []
   }, [])
 
   useEffect(() => {
     if (!mapContainer.current) return
 
-    // Initialize map
-    const newMap = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-2.5879, 51.4545], // Bristol city center
+      center: userLocation,
       zoom: 12
     })
 
-    // Add navigation controls
-    newMap.addControl(new mapboxgl.NavigationControl())
+    mapRef.current = map
 
-    map.current = newMap
-
-    // Cleanup on unmount
-    return () => {
-      clearMarkers()
-      newMap.remove()
-    }
-  }, [])
-
-  // Add user location marker
-  useEffect(() => {
-    const currentMap = map.current
-    if (!currentMap || !userLocation) return
-
-    // Create user location marker
-    const el = document.createElement('div')
-    el.className = 'user-location'
-    el.style.width = '16px'
-    el.style.height = '16px'
-    el.style.backgroundColor = '#4B89F0'
-    el.style.borderRadius = '50%'
-    el.style.border = '3px solid white'
-    el.style.boxShadow = '0 0 0 2px #4B89F0'
-
-    // Add accuracy radius
-    const accuracyRadius = document.createElement('div')
-    accuracyRadius.className = 'accuracy-radius'
-    accuracyRadius.style.position = 'absolute'
-    accuracyRadius.style.borderRadius = '50%'
-    accuracyRadius.style.width = '50px'
-    accuracyRadius.style.height = '50px'
-    accuracyRadius.style.backgroundColor = 'rgba(75, 137, 240, 0.1)'
-    accuracyRadius.style.border = '2px solid rgba(75, 137, 240, 0.2)'
-    accuracyRadius.style.transform = 'translate(-50%, -50%)'
-    el.appendChild(accuracyRadius)
-
-    // Add marker to map
-    const marker = new mapboxgl.Marker(el)
-      .setLngLat(userLocation)
-      .addTo(currentMap)
-
-    // Store marker reference
-    markersRef.current.push(marker)
-
-    // Center map on user location
-    currentMap.flyTo({
-      center: userLocation,
-      zoom: 13
+    // Add home marker
+    homeMarker.current = new mapboxgl.Marker({
+      color: '#3b82f6', // blue-500
+      scale: 1.2
     })
+      .setLngLat(userLocation)
+      .addTo(map)
 
-  }, [userLocation])
+    // Add navigation controls
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
-  // Add market markers
+    // Add geolocate control
+    map.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true
+      }),
+      'top-right'
+    )
+
+    // Clean up on unmount
+    return () => map.remove()
+  }, [userLocation]) // Re-run if user location changes
+
   useEffect(() => {
-    const currentMap = map.current
-    if (!currentMap) return
+    const map = mapRef.current
+    if (!map) return
 
+    // Clear existing markers
     clearMarkers()
 
-    // Sort markets by distance from user location
-    const marketsWithDistance = markets
-      .map(market => {
-        const coords = parseLocation(market.location)
-        return {
-          market,
-          coordinates: coords,
-          distance: coords ? calculateDistance(userLocation, coords) : Infinity
-        }
+    // Add new markers for each market
+    markets.forEach(market => {
+      const location = parseLocation(market.location)
+      if (!location) return
+
+      const distance = calculateDistance(userLocation, location)
+      const color = selectedMarket?.market_id === market.market_id ? '#ef4444' : '#000000'
+
+      const marker = new mapboxgl.Marker({ color })
+        .setLngLat(location)
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(
+            `<h3 class="text-lg font-bold">${market.name}</h3>
+            <p class="text-sm text-gray-600">${market.description}</p>
+            <p class="text-sm text-gray-600 mt-2">${(distance / 1000).toFixed(1)} km away</p>`
+          )
+        )
+        .addTo(map)
+
+      // Add click event
+      marker.getElement().addEventListener('click', () => {
+        onMarketSelect(market)
       })
-      .sort((a, b) => a.distance - b.distance)
 
-    // Add markers for each market
-    marketsWithDistance.forEach((item, index) => {
-      const { market, coordinates } = item
-      if (!coordinates) return
-
-      const [lng, lat] = coordinates
-
-      // Create marker element
-      const el = document.createElement('div')
-      el.className = 'marker'
-      el.style.backgroundColor = '#FF4B4B'
-      el.style.width = '24px'
-      el.style.height = '24px'
-      el.style.borderRadius = '50%'
-      el.style.border = '2px solid white'
-      el.style.cursor = 'pointer'
-      el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)'
-      el.style.display = 'flex'
-      el.style.alignItems = 'center'
-      el.style.justifyContent = 'center'
-      el.style.color = 'white'
-      el.style.fontSize = '12px'
-      el.style.fontWeight = 'bold'
-      el.innerText = `${index + 1}`
-
-      // Add popup
-      const popup = new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`
-          <strong>${market.name}</strong>
-          ${market.address ? `<p>${market.address}</p>` : ''}
-        `)
-
-      // Add marker to map
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([lng, lat])
-        .setPopup(popup)
-        .addTo(currentMap)
-
-      // Store marker reference
       markersRef.current.push(marker)
-
-      // Add click handler
-      el.addEventListener('click', () => {
-        onMarketSelect?.(market)
-      })
     })
-  }, [markets, onMarketSelect, clearMarkers])
+
+    // Pan to selected market if exists
+    if (selectedMarket) {
+      const location = parseLocation(selectedMarket.location)
+      if (location && map) {
+        map.flyTo({
+          center: location,
+          zoom: 15,
+          essential: true
+        })
+      }
+    }
+  }, [markets, selectedMarket, onMarketSelect, userLocation, clearMarkers])
 
   return (
-    <div 
-      ref={mapContainer} 
-      className="map-container rounded-lg shadow-lg"
-    />
+    <div ref={mapContainer} className="w-full h-full" />
   )
 }

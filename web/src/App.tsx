@@ -22,33 +22,53 @@ function App() {
   useEffect(() => {
     async function fetchMarkets() {
       try {
-        const { data, error } = await supabase
-          .rpc('get_markets_with_locations')
+        // First get raw markets data with opening_hours
+        const { data: rawData, error: rawError } = await supabase
+          .from('markets')
+          .select('market_id, name, opening_hours')
         
+        if (rawError) throw rawError
+        console.log('Raw data from markets table:', rawData)
+        
+        // Create an object mapping market_id to opening_hours
+        const openingHoursMap: {[key: number]: string} = {};
+        rawData?.forEach((market: any) => {
+          openingHoursMap[market.market_id] = market.opening_hours;
+        });
+        
+        console.log('Opening hours map:', openingHoursMap);
+        
+        // Get market data from RPC function for locations
+        const { data: marketsData, error } = await supabase.rpc('get_markets_with_locations');
         if (error) throw error
-
-        console.log('Raw market data:', JSON.stringify(data, null, 2))
-        console.log('Number of markets:', data?.length || 0)
-
+        
+        console.log('Raw market data:', marketsData)
+        console.log('First market:', marketsData?.[0])
+        console.log('Market fields:', marketsData?.[0] ? Object.keys(marketsData[0]) : [])
+        
         // Transform PostGIS point to GeoJSON format
-        const marketsWithLocation = (data || []).map((market: any) => {
-          // Debug log for each market's location
-          console.log(`Market ${market.name} location:`, market.location)
-          
+        const marketsWithLocation = (marketsData || []).map((market: any) => {
           if (!market.location) {
             console.warn(`Market ${market.name} has no location data`)
-            return {
-              ...market,
+            const result = {
+              market_id: market.market_id,
+              name: market.name,
+              description: market.description,
+              address: market.address,
+              website_url: market.website_url,
+              opening_hours: openingHoursMap[market.market_id] || null,
               location: {
                 type: 'Point',
                 coordinates: [-2.5879, 51.4545] as [number, number] // Default to Bristol center
               }
             }
+            console.log('Market with no location:', market.name, 'Opening hours:', result.opening_hours)
+            return result
           }
 
           // Handle string location (PostGIS format)
           if (typeof market.location === 'string') {
-            const matches = market.location.match(/POINT\(([\d.-]+)\s+([\d.-]+)\)/)
+            const matches = market.location.match(/POINT\(([-\d.-]+)\s+([-\d.-]+)\)/)
             if (!matches) {
               console.warn(`Invalid location format for market ${market.name}:`, market.location)
               return {
@@ -75,19 +95,31 @@ function App() {
               }
             }
 
-            return {
-              ...market,
+            const transformed = {
+              market_id: market.market_id,
+              name: market.name,
+              description: market.description,
+              address: market.address,
+              website_url: market.website_url,
+              opening_hours: openingHoursMap[market.market_id] || null,
               location: {
                 type: 'Point',
-                coordinates: [lng, lat] as [number, number]
+                coordinates: [parseFloat(matches[1]), parseFloat(matches[2])] as [number, number]
               }
             }
+            console.log('Market with location:', market.name, 'Opening hours:', transformed.opening_hours)
+            return transformed
           }
 
           // If location is already in GeoJSON format
-          return market
+          return {
+            ...market,
+            opening_hours: openingHoursMap[market.market_id] || null
+          }
         })
         
+        console.log('First transformed market:', marketsWithLocation[0])
+        console.log('Transformed market fields:', Object.keys(marketsWithLocation[0]))
         setMarkets(marketsWithLocation)
       } catch (e) {
         console.error('Error fetching markets:', e)
