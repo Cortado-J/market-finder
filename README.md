@@ -76,8 +76,7 @@ supabase db push
 ## 📌 Status
 
 ✅ Supabase project linked  
-✅ Schema migration under version control  
-⬜ Seed data  
+✅ Schema migration under version control   
 ⬜ Frontend (React/Flutter/etc.)  
 ⬜ Admin UI for organisers  
 ⬜ Public map view  
@@ -88,7 +87,6 @@ supabase db push
 
 - Geo-clustering on maps
 - Auth for organisers with RLS-based edit rights
-- Email reminders for unconfirmed markets
 
 ---
 

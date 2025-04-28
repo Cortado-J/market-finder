@@ -5,6 +5,35 @@ import { MarketList } from './components/MarketList'
 import { Market } from './types/Market'
 import './App.css'
 
+// View mode type
+type ViewMode = 'list' | 'map';
+
+// Helper function to calculate distance between two coordinates
+function calculateDistance(
+  [lon1, lat1]: [number, number],
+  [lon2, lat2]: [number, number]
+): number {
+  // Haversine formula for calculating distance between two points
+  const R = 6371 // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  return R * c
+}
+
+// Helper function to get coordinates from market location
+function getCoordinates(market: Market): [number, number] | null {
+  if (typeof market.location === 'string') {
+    const matches = market.location.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/)
+    return matches ? [parseFloat(matches[1]), parseFloat(matches[2])] : null
+  }
+  return market.location.coordinates
+}
+
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -18,6 +47,7 @@ function App() {
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>('list') // Default to list view
 
   useEffect(() => {
     async function fetchMarkets() {
@@ -138,20 +168,73 @@ function App() {
   return (
     <div className="app">
       <div className="content">
-        <div className="map-container" style={{ height: '400px', marginBottom: '20px' }}>
-          <Map
+        {/* View toggle button */}
+        <div className="flex justify-center my-4">
+          <div className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 text-sm font-medium rounded-l-lg ${viewMode === 'list' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-900 border border-gray-200 hover:bg-gray-100'}`}
+            >
+              List View
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('map')}
+              className={`px-4 py-2 text-sm font-medium rounded-r-lg ${viewMode === 'map' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-900 border border-gray-200 hover:bg-gray-100'}`}
+            >
+              Map View
+            </button>
+          </div>
+        </div>
+
+        {/* Conditional rendering based on view mode */}
+        {viewMode === 'map' ? (
+          <div className="map-container relative" style={{ height: 'calc(100vh - 120px)' }}>
+            <Map
+              markets={markets}
+              selectedMarket={selectedMarket}
+              userLocation={defaultLocation}
+              onMarketSelect={setSelectedMarket}
+            />
+            {selectedMarket && (
+              <div className="absolute bottom-4 left-4 right-4 market-item selected z-10">
+                <div>
+                  {/* Market name with distance */}
+                  <div className="flex items-center">
+                    <h3 className="market-name">{selectedMarket.name}</h3>
+                    {(() => {
+                      const coords = getCoordinates(selectedMarket);
+                      if (!coords) return null;
+                      const distance = calculateDistance(defaultLocation, coords);
+                      const distanceText = `(${Math.round(distance * 0.621371)} miles)`;
+                      return <span className="market-distance">{distanceText}</span>;
+                    })()}
+                  </div>
+                  
+                  {/* Address */}
+                  <p className="mt-2">{selectedMarket.address}</p>
+                  
+                  {/* Opening hours */}
+                  {selectedMarket.opening_hours && (
+                    <p className="text-sm mt-1 opacity-90">Regular hours: {selectedMarket.opening_hours}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <MarketList
             markets={markets}
             selectedMarket={selectedMarket}
-            userLocation={defaultLocation}
             onMarketSelect={setSelectedMarket}
+            userLocation={defaultLocation}
           />
-        </div>
-        <MarketList
-          markets={markets}
-          selectedMarket={selectedMarket}
-          onMarketSelect={setSelectedMarket}
-          userLocation={defaultLocation}
-        />
+        )}
       </div>
     </div>
   )
