@@ -2,6 +2,7 @@ import { Market } from '../types/Market'
 import { useMemo, useEffect, useState } from 'react'
 import { MarketOpening, getUpcomingMarketOpenings } from '../utils/getMarketOpenings'
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns'
+import { getMarketImageUrl } from '../utils/imageUtils'
 
 interface MarketListProps {
   markets: Market[]
@@ -389,57 +390,78 @@ export function MarketList({ markets, selectedMarket, onMarketSelect, userLocati
                 onClick={() => onMarketSelect(market)}
                 className={`market-item ${selectedMarket?.market_id === market.market_id ? 'selected' : ''}`}
               >
-                <div>
-                  {/* Market name in larger font with distance */}
-                  <div className="flex items-center">
-                    <h3 className="market-name">{market.name}</h3>
-                    {distanceText && (
-                      <span className="market-distance">{distanceText}</span>
+                <div className="flex justify-between items-start">
+                  <div className="flex-grow pr-3">
+                    {/* Market name in larger font with distance */}
+                    <div className="flex items-center">
+                      <h3 className="market-name">{market.name}</h3>
+                      {distanceText && (
+                        <span className="market-distance">{distanceText}</span>
+                      )}
+                    </div>
+                  
+                    {/* Opening time based on filter type */}
+                    {marketNextOpenings.has(market.market_id) && (
+                      <div className="mt-0">
+                        {(() => {
+                          const opening = marketNextOpenings.get(market.market_id)!;
+                          if (opening.error) {
+                            return <p className="text-red-200">{opening.error}</p>;
+                          }
+                          
+                          const date = parseISO(opening.date!);
+                          
+                          if (isSingleDayFilter) {
+                            // For single day filter, always show the selected date
+                            let displayDate = date;
+                            
+                            // Get the date based on the selected filter
+                            if (dateFilter === 'today') {
+                              displayDate = new Date();
+                            } else if (dateFilter === 'tomorrow') {
+                              displayDate = addDays(new Date(), 1);
+                            } else if (dateFilter.startsWith('day-')) {
+                              const dayOffset = parseInt(dateFilter.replace('day-', ''));
+                              displayDate = addDays(new Date(), dayOffset - 1);
+                            }
+                            
+                            return (
+                              <p>Opening times on {format(displayDate, 'EEE d MMM')}: {opening.startTime}-{opening.endTime}</p>
+                            );
+                          } else {
+                            // For multiple day filter, show first opening in the period
+                            return (
+                              <p>First open in this period on {format(date, 'EEE d MMM')}: {opening.startTime}-{opening.endTime}</p>
+                            );
+                          }
+                        })()}
+                      </div>
+                    )}
+                    
+                    {/* Regular opening hours */}
+                    {market.opening_hours && (
+                      <p className="text-sm mt-1 opacity-90">Regular hours: {market.opening_hours}</p>
                     )}
                   </div>
                   
-                  {/* Opening time based on filter type */}
-                  {marketNextOpenings.has(market.market_id) && (
-                    <div className="mt-0">
-                      {(() => {
-                        const opening = marketNextOpenings.get(market.market_id)!;
-                        if (opening.error) {
-                          return <p className="text-red-200">{opening.error}</p>;
-                        }
-                        
-                        const date = parseISO(opening.date!);
-                        
-                        if (isSingleDayFilter) {
-                          // For single day filter, always show the selected date
-                          let displayDate = date;
-                          
-                          // Get the date based on the selected filter
-                          if (dateFilter === 'today') {
-                            displayDate = new Date();
-                          } else if (dateFilter === 'tomorrow') {
-                            displayDate = addDays(new Date(), 1);
-                          } else if (dateFilter.startsWith('day-')) {
-                            const dayOffset = parseInt(dateFilter.replace('day-', ''));
-                            displayDate = addDays(new Date(), dayOffset - 1);
-                          }
-                          
-                          return (
-                            <p>Opening times on {format(displayDate, 'EEE d MMM')}: {opening.startTime}-{opening.endTime}</p>
-                          );
-                        } else {
-                          // For multiple day filter, show first opening in the period
-                          return (
-                            <p>First open in this period on {format(date, 'EEE d MMM')}: {opening.startTime}-{opening.endTime}</p>
-                          );
-                        }
-                      })()}
-                    </div>
-                  )}
-                  
-                  {/* Regular opening hours */}
-                  {market.opening_hours && (
-                    <p className="text-sm mt-1 opacity-90">Regular hours: {market.opening_hours}</p>
-                  )}
+                  {/* Market image on the right side */}
+                  {market.market_ref && (() => {
+                    const imageUrl = getMarketImageUrl(import.meta.env.VITE_SUPABASE_URL, market.market_ref);
+                    return imageUrl ? (
+                      <div className="flex-shrink-0 ml-2">
+                        <img 
+                          src={imageUrl} 
+                          alt={`${market.name} image`} 
+                          className="object-cover rounded-sm h-full" 
+                          style={{ width: '3.5em', height: '3.5em' }}
+                          onError={(e) => {
+                            // Hide the image on error
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               </div>
             );

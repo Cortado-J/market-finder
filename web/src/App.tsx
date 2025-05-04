@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Map } from './components/Map'
 import { MarketList } from './components/MarketList'
 import { Market } from './types/Market'
+import { getMarketImageUrl } from './utils/imageUtils'
 import './App.css'
 
 // View mode type
@@ -55,15 +56,21 @@ function App() {
         // First get raw markets data with opening_hours
         const { data: rawData, error: rawError } = await supabase
           .from('markets')
-          .select('market_id, name, opening_hours')
+          .select('market_id, name, opening_hours, market_ref')
         
         if (rawError) throw rawError
         console.log('Raw data from markets table:', rawData)
         
-        // Create an object mapping market_id to opening_hours
+        // Create objects mapping market_id to opening_hours and market_ref
         const openingHoursMap: {[key: number]: string} = {};
+        const marketRefMap: {[key: number]: string} = {};
         rawData?.forEach((market: any) => {
           openingHoursMap[market.market_id] = market.opening_hours;
+          if (market.market_ref) {
+            // Store the market_ref value
+            marketRefMap[market.market_id] = market.market_ref;
+            console.log(`Market ${market.name} has ref: ${market.market_ref}`);
+          }
         });
         
         console.log('Opening hours map:', openingHoursMap);
@@ -87,6 +94,8 @@ function App() {
               address: market.address,
               website_url: market.website_url,
               opening_hours: openingHoursMap[market.market_id] || null,
+              market_ref: marketRefMap[market.market_id] || null,
+              imageUrl: getMarketImageUrl(supabaseUrl, marketRefMap[market.market_id]),
               location: {
                 type: 'Point',
                 coordinates: [-2.5879, 51.4545] as [number, number] // Default to Bristol center
@@ -132,6 +141,8 @@ function App() {
               address: market.address,
               website_url: market.website_url,
               opening_hours: openingHoursMap[market.market_id] || null,
+              market_ref: marketRefMap[market.market_id] || null,
+              imageUrl: getMarketImageUrl(supabaseUrl, marketRefMap[market.market_id]),
               location: {
                 type: 'Point',
                 coordinates: [parseFloat(matches[1]), parseFloat(matches[2])] as [number, number]
@@ -142,9 +153,12 @@ function App() {
           }
 
           // If location is already in GeoJSON format
+          const marketRef = marketRefMap[market.market_id] || null;
           return {
             ...market,
-            opening_hours: openingHoursMap[market.market_id] || null
+            opening_hours: openingHoursMap[market.market_id] || null,
+            market_ref: marketRef,
+            imageUrl: getMarketImageUrl(supabaseUrl, marketRef)
           }
         })
         

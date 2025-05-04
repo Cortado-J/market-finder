@@ -9,4 +9,6 @@ export interface Market {
     type: string
     coordinates: [number, number] // [longitude, latitude]
   }
+  market_ref?: string  // Reference code for the market
+  imageUrl?: string    // URL to the market image
 }
