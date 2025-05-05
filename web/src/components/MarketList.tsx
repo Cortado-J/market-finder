@@ -2,13 +2,15 @@ import { Market } from '../types/Market'
 import { useMemo, useEffect, useState } from 'react'
 import { MarketOpening, getUpcomingMarketOpenings } from '../utils/getMarketOpenings'
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns'
-import { getMarketImageUrl } from '../utils/imageUtils'
+import { getMarketImageUrl, getCategoryIconUrl } from '../utils/imageUtils'
 
 interface MarketListProps {
   markets: Market[]
   selectedMarket: Market | null
   onMarketSelect: (market: Market) => void
   userLocation: [number, number] // [longitude, latitude]
+  initialDateFilter?: DateFilter
+  onDateFilterChange?: (filter: DateFilter) => void
 }
 
 function calculateDistance(
@@ -38,9 +40,24 @@ function getCoordinates(market: Market): [number, number] | null {
 // Date filter options
 type DateFilter = 'today' | 'tomorrow' | 'day-3' | 'day-4' | 'day-5' | 'day-6' | 'day-7' | 'next-14-days';
 
-export function MarketList({ markets, selectedMarket, onMarketSelect, userLocation }: MarketListProps) {
+export function MarketList({ 
+  markets, 
+  selectedMarket, 
+  onMarketSelect, 
+  userLocation,
+  initialDateFilter = 'today',
+  onDateFilterChange
+}: MarketListProps) {
   const [openings, setOpenings] = useState<MarketOpening[]>([]);
-  const [dateFilter, setDateFilter] = useState<DateFilter>('today'); // Default to today
+  const [dateFilter, setDateFilter] = useState<DateFilter>(initialDateFilter); // Use initialDateFilter
+  
+  // Handle date filter changes and notify parent component
+  const handleDateFilterChange = (filter: DateFilter) => {
+    setDateFilter(filter);
+    if (onDateFilterChange) {
+      onDateFilterChange(filter);
+    }
+  };
 
   // Fetch upcoming market openings
   useEffect(() => {
@@ -325,25 +342,26 @@ export function MarketList({ markets, selectedMarket, onMarketSelect, userLocati
       { filter: 'day-7', date: addDays(now, 6), label: formatDateWithOrdinal(addDays(now, 6)) },
     ];
   }, []);
-  
-  // Determine if the current filter is for a single day or multiple days
+
   const isSingleDayFilter = useMemo(() => {
     return ['today', 'tomorrow', 'day-3', 'day-4', 'day-5', 'day-6', 'day-7'].includes(dateFilter);
   }, [dateFilter]);
-  
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
   return (
     <div className="space-y-4 p-4 font-sans">
       {/* Date filter controls - scrollable horizontally */}
       <div className="overflow-x-auto pb-4 border-b border-gray-200">
         <div className="flex space-x-3 min-w-max pb-2">
           <button 
-            onClick={() => setDateFilter('today')}
+            onClick={() => handleDateFilterChange('today')}
             className={`filter-button ${dateFilter === 'today' ? 'active' : ''}`}
           >
             Today
           </button>
           <button 
-            onClick={() => setDateFilter('tomorrow')}
+            onClick={() => handleDateFilterChange('tomorrow')}
             className={`filter-button ${dateFilter === 'tomorrow' ? 'active' : ''}`}
           >
             Tomorrow
@@ -354,7 +372,7 @@ export function MarketList({ markets, selectedMarket, onMarketSelect, userLocati
             return (
               <button 
                 key={day.filter}
-                onClick={() => setDateFilter(day.filter as DateFilter)}
+                onClick={() => handleDateFilterChange(day.filter as DateFilter)}
                 className={`filter-button ${dateFilter === day.filter ? 'active' : ''}`}
               >
                 {day.label}
@@ -363,7 +381,7 @@ export function MarketList({ markets, selectedMarket, onMarketSelect, userLocati
           })}
           
           <button 
-            onClick={() => setDateFilter('next-14-days')}
+            onClick={() => handleDateFilterChange('next-14-days')}
             className={`filter-button ${dateFilter === 'next-14-days' ? 'active' : ''}`}
           >
             Next 14 Days
@@ -392,12 +410,24 @@ export function MarketList({ markets, selectedMarket, onMarketSelect, userLocati
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-grow pr-3">
-                    {/* Market name in larger font with distance */}
-                    <div className="flex items-center">
-                      <h3 className="market-name">{market.name}</h3>
-                      {distanceText && (
-                        <span className="market-distance">{distanceText}</span>
-                      )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <h3 className="market-name">{market.name}</h3>
+                        {distanceText && <span className="market-distance ml-2">{distanceText}</span>}
+                        {(market.categories ?? []).length > 0 && (
+                          <div className="flex space-x-1 ml-2">
+                            {(market.categories ?? []).map(cat => (
+                              <img
+                                key={cat}
+                                src={getCategoryIconUrl(supabaseUrl, cat)}
+                                alt={cat}
+                                className="w-[30px] h-[30px]"
+                                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   
                     {/* Opening time based on filter type */}
@@ -446,18 +476,14 @@ export function MarketList({ markets, selectedMarket, onMarketSelect, userLocati
                   
                   {/* Market image on the right side */}
                   {market.market_ref && (() => {
-                    const imageUrl = getMarketImageUrl(import.meta.env.VITE_SUPABASE_URL, market.market_ref);
+                    const imageUrl = getMarketImageUrl(supabaseUrl, market.market_ref);
                     return imageUrl ? (
                       <div className="flex-shrink-0 ml-2">
-                        <img 
-                          src={imageUrl} 
-                          alt={`${market.name} image`} 
-                          className="object-cover rounded-sm h-full" 
-                          style={{ width: '3.5em', height: '3.5em' }}
-                          onError={(e) => {
-                            // Hide the image on error
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
+                        <img
+                          src={imageUrl}
+                          alt={`${market.name} image`}
+                          className="w-[90px] h-[90px] object-cover rounded-sm"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       </div>
                     ) : null;

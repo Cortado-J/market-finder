@@ -17,3 +17,11 @@ export function getMarketImageUrl(supabaseUrl: string, marketRef: string | null)
   // Construct the image URL
   return `${supabaseUrl}/storage/v1/object/public/market-photos/main/${cleanRef}-main.png`;
 }
+
+// Add new function for category icons
+export function getCategoryIconUrl(supabaseUrl: string, category: string): string {
+  // Clean up the category name
+  const cleanCategory = category.trim().replace(/--/g, '-');
+  // Construct the category icon URL
+  return `${supabaseUrl}/storage/v1/object/public/graphics/icon-${cleanCategory}.png`;
+}
