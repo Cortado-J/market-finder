@@ -1,89 +1,98 @@
-# Market Finder Search Screen Specification (Mobile First)
+# Market Finder App - Current Implementation & Roadmap
 
-Purpose:
-Provide a simple, intuitive search experience for finding markets, focusing on core user needs: finding markets today, tomorrow, this week, or in a particular week.
+## Purpose
+Market Finder provides a simple, intuitive experience for finding local markets, with a focus on when they're open and where they're located. The app helps users discover markets that are open today, tomorrow, or in the coming days.
 
-**1. Grouping and Ordering of List**
+## Current Implementation
 
-Group by date:
+### 1. Core Features
 
-Each date (e.g., "Monday 28 April", "Tuesday 29 April") forms a separate group.
+#### Date Filtering
+- Default view shows markets open today
+- Filter options include: Today, Tomorrow, and the next 5 days individually
+- "Next 14 days" option to see all upcoming markets
+- Date filters persist when navigating between views
 
-Order groups:
+#### View Modes
+- **List View**: Scrollable list of markets with details
+- **Map View**: Interactive map showing market locations
+- **Detail View**: Comprehensive information about a selected market
+- State preservation when navigating between views (filter selections and scroll position)
 
-Chronological, earliest date first.
+#### Market Information
+- Market name and description
+- Opening hours and next opening date
+- Location (address and map coordinates)
+- Market categories with icons
+- Market images
 
-**2. Ordering Within a Group**
+### 2. User Interface
 
-Order markets within each date group by distance from the user's home location, nearest first.
+#### List View
+- Markets displayed in cards with consistent styling
+- Each card shows:
+  - Market name in larger font
+  - Market image (90×90px)
+  - Category icons (30×30px)
+  - Next opening date/time
+  - Distance from user location
 
-**3. Displaying Markets That Occur on Multiple Days**
+#### Map View
+- Interactive Mapbox implementation
+- Markers for all markets matching the current filter
+- Device-appropriate interactions:
+  - Desktop: Hover tooltips show market names, clicking opens popup with details
+  - Mobile: Tapping markers opens popup with market details
+- "View Market Details" button in popups for navigation to detail view
 
-Each market appears only once in each filtered list view.
+#### Detail View
+- Large market image (300px height)
+- Complete market information
+- Category icons (30×30px)
+- Opening hours
+- Website link when available
+- Back button to return to previous view
 
-A market that runs on multiple days (e.g., Tuesday through Thursday) should appear in all relevant day filters (e.g., "Tuesday", "Wednesday", "Thursday", and "Next 14 Days").
+### 3. Technical Implementation
 
-Tag is shown indicating additional days when the market is also held.
+#### Data Management
+- Supabase backend for market data storage
+- Single shared Supabase client instance to prevent duplicate connections
+- Centralized image URL construction with the DRY principle
 
-Example display: "City Market (Also on Wed, Thu)"
+#### Map Integration
+- Mapbox for mapping functionality
+- Custom marker styling and interactions
+- Responsive design for both desktop and mobile devices
 
-**4. User Experience Principles**
+#### State Management
+- React state for UI components
+- Preserved state when navigating between views
 
-Emphasize simplicity and clarity.
+## Future Development Roadmap
 
-Default filter: Show today's markets when the user opens the screen.
+### 1. Enhanced User Experience
+- User accounts and favorites
+- Personalized recommendations based on visit history
+- Notifications for favorite markets' opening days
+- Offline support for basic functionality
 
-Filters available:
-- Today (blue button)
-- Tomorrow (blue button)
-- Next 5 days shown individually (Thu, Fri, Sat, Sun, Mon) (blue buttons)
-- Next 14 days (blue button)
+### 2. Additional Features
+- Search functionality by market name or product type
+- Filtering by market categories (e.g., farmers, craft, food)
+- User reviews and ratings
+- Market vendor information and stall details
+- Social sharing options
 
-**5. Map Marker Colour Scheme**
+### 3. Technical Improvements
+- Performance optimizations for faster loading
+- Enhanced caching strategy
+- Automated testing suite
+- Progressive Web App (PWA) implementation
+- Analytics to track user behavior and improve the app
 
-Marker colours:
-
-Markets Today: Blue
-
-Markets Tomorrow: Light Blue
-
-Markets Later This Week: Grey
-
-Selected Market: Yellow or Highlighted Outline
-
-**6. Mobile-First Layout**
-
-Toggle between List and Map views (default view is List).
-
-List View:
-- Markets displayed in dark grey boxes, one below the other (scrollable)
-- Each box contains:
-  - Market name in a larger font
-  - Next open date/time below the name
-  - Standard opening times below that
-
-Map View:
-- Fullscreen map
-- An overlaid dark grey box (same style as list view) near the bottom of the screen shows details of the selected market
-- Displayed market defaults to the earliest market (based on opening time)
-- The box contains:
-  - Market name in a larger font
-  - Next open date/time
-  - Standard opening times
-- The currently selected market is highlighted on the map
-
-**7. Interaction Between List and Map**
-
-Selecting a market from the list view should:
-
-Toggle to map view (optional - to be confirmed) or
-
-Highlight the corresponding marker.
-
-Selecting a marker on the map should:
-
-Update the overlaid market information box.
-
-Highlight the selected market.
-
-
+### 4. Content Expansion
+- More detailed market descriptions
+- Photo galleries for each market
+- Special events calendar
+- Seasonal product availability information

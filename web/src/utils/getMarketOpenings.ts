@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './supabase';
 import opening_hours from 'opening_hours';
 import { eachDayOfInterval, format, addDays } from 'date-fns';
 
@@ -19,10 +19,7 @@ export interface MarketOpening {
   endTime?: string;  // HH:mm
 }
 
-// Supabase client - use the same instance as App.tsx
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Using the shared Supabase client instance
 
 // Helper to build one‑day interval [00:00, 24:00) in local time
 function dayBoundaries(date: Date): [Date, Date] {

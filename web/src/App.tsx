@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from './utils/supabase'
 import { Map } from './components/Map'
 import { MarketList } from './components/MarketList'
+import { MarketDetail } from './components/MarketDetail'
 import { Market } from './types/Market'
 import { getMarketImageUrl } from './utils/imageUtils'
+import { MarketOpening, getUpcomingMarketOpenings } from './utils/getMarketOpenings'
 import './App.css'
 
+// Date filter type (must match the one in MarketList)
+type DateFilter = 'today' | 'tomorrow' | 'day-3' | 'day-4' | 'day-5' | 'day-6' | 'day-7' | 'next-14-days';
+
 // View mode type
-type ViewMode = 'list' | 'map';
+type ViewMode = 'list' | 'map' | 'detail';
 
 // Helper function to calculate distance between two coordinates
 function calculateDistance(
@@ -35,10 +40,7 @@ function getCoordinates(market: Market): [number, number] | null {
   return market.location.coordinates
 }
 
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Using shared Supabase client from utils/supabase.ts
 
 // Default location coordinates for BS7 8LZ
 const defaultLocation: [number, number] = [-2.5973, 51.4847]
@@ -49,6 +51,9 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('list') // Default to list view
+  const [marketOpenings, setMarketOpenings] = useState<MarketOpening[]>([]);
+  // State for preserving date filter selection
+  const [currentDateFilter, setCurrentDateFilter] = useState<DateFilter>('today');
 
   useEffect(() => {
     async function fetchMarkets() {
@@ -56,7 +61,7 @@ function App() {
         // First get raw markets data with opening_hours
         const { data: rawData, error: rawError } = await supabase
           .from('markets')
-          .select('market_id, name, opening_hours, market_ref')
+          .select('market_id, name, opening_hours, market_ref, categories')
         
         if (rawError) throw rawError
         console.log('Raw data from markets table:', rawData)
@@ -64,14 +69,25 @@ function App() {
         // Create objects mapping market_id to opening_hours and market_ref
         const openingHoursMap: {[key: number]: string} = {};
         const marketRefMap: {[key: number]: string} = {};
+        const categoriesMap: {[key: number]: string[]} = {};
+        
+        console.log('Raw market data structure:', rawData?.[0]);
+        
         rawData?.forEach((market: any) => {
           openingHoursMap[market.market_id] = market.opening_hours;
+          console.log(`Market ${market.name} (ID: ${market.market_id}) raw market_ref:`, market.market_ref);
+          
           if (market.market_ref) {
             // Store the market_ref value
             marketRefMap[market.market_id] = market.market_ref;
-            console.log(`Market ${market.name} has ref: ${market.market_ref}`);
+            console.log(`Added to marketRefMap: ${market.market_id} => ${market.market_ref}`);
+          } else {
+            console.log(`No market_ref for market: ${market.name}`);
           }
+          categoriesMap[market.market_id] = market.categories || [];
         });
+        
+        console.log('Final marketRefMap:', marketRefMap);
         
         console.log('Opening hours map:', openingHoursMap);
         
@@ -85,6 +101,7 @@ function App() {
         
         // Transform PostGIS point to GeoJSON format
         const marketsWithLocation = (marketsData || []).map((market: any) => {
+          const categories = categoriesMap[market.market_id] || [];
           if (!market.location) {
             console.warn(`Market ${market.name} has no location data`)
             const result = {
@@ -95,7 +112,8 @@ function App() {
               website_url: market.website_url,
               opening_hours: openingHoursMap[market.market_id] || null,
               market_ref: marketRefMap[market.market_id] || null,
-              imageUrl: getMarketImageUrl(supabaseUrl, marketRefMap[market.market_id]),
+              imageUrl: getMarketImageUrl(marketRefMap[market.market_id]),
+              categories,
               location: {
                 type: 'Point',
                 coordinates: [-2.5879, 51.4545] as [number, number] // Default to Bristol center
@@ -142,7 +160,8 @@ function App() {
               website_url: market.website_url,
               opening_hours: openingHoursMap[market.market_id] || null,
               market_ref: marketRefMap[market.market_id] || null,
-              imageUrl: getMarketImageUrl(supabaseUrl, marketRefMap[market.market_id]),
+              imageUrl: getMarketImageUrl(marketRefMap[market.market_id]),
+              categories,
               location: {
                 type: 'Point',
                 coordinates: [parseFloat(matches[1]), parseFloat(matches[2])] as [number, number]
@@ -158,7 +177,8 @@ function App() {
             ...market,
             opening_hours: openingHoursMap[market.market_id] || null,
             market_ref: marketRef,
-            imageUrl: getMarketImageUrl(supabaseUrl, marketRef)
+            imageUrl: getMarketImageUrl(marketRef),
+            categories: categoriesMap[market.market_id] || []
           }
         })
         
@@ -174,8 +194,66 @@ function App() {
     }
 
     fetchMarkets()
+    
+    // Fetch upcoming market openings
+    async function fetchOpenings() {
+      try {
+        // Get openings for the next 14 days
+        const nextOpenings = await getUpcomingMarketOpenings(14);
+        setMarketOpenings(nextOpenings);
+      } catch (error) {
+        console.error('Error fetching market openings:', error);
+      }
+    }
+    
+    fetchOpenings();
   }, [])
 
+  // State for preserving list scroll position
+  const [listScrollPosition, setListScrollPosition] = useState(0);
+  // State for preserving previous view mode (list or map)
+  const [previousViewMode, setPreviousViewMode] = useState<'list' | 'map'>('list');
+  
+  // Handle market selection
+  const handleMarketSelect = (market: Market) => {
+    // Save current scroll position before navigating to detail
+    if (viewMode === 'list') {
+      const listContainer = document.querySelector('.space-y-4.overflow-y-auto');
+      if (listContainer) {
+        setListScrollPosition(listContainer.scrollTop);
+      }
+    }
+    
+    // Save current view mode (list or map)
+    if (viewMode === 'list' || viewMode === 'map') {
+      setPreviousViewMode(viewMode);
+    }
+    
+    setSelectedMarket(market);
+    setViewMode('detail');
+  };
+  
+  // Handle back button in detail view
+  const handleBackToList = () => {
+    // Return to previous view mode (list or map)
+    setViewMode(previousViewMode);
+    
+    // Restore scroll position after render
+    if (previousViewMode === 'list') {
+      setTimeout(() => {
+        const listContainer = document.querySelector('.space-y-4.overflow-y-auto');
+        if (listContainer) {
+          listContainer.scrollTop = listScrollPosition;
+        }
+      }, 100); // Increased timeout to ensure DOM is ready
+    }
+  };
+  
+  // Find next opening for selected market
+  const selectedMarketNextOpening = selectedMarket ? 
+    marketOpenings.find(opening => opening.marketId === selectedMarket.market_id) : 
+    undefined;
+  
   if (loading) return <div className="p-4">Loading markets...</div>
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>
 
@@ -213,7 +291,7 @@ function App() {
               markets={markets}
               selectedMarket={selectedMarket}
               userLocation={defaultLocation}
-              onMarketSelect={setSelectedMarket}
+              onMarketSelect={handleMarketSelect}
             />
             {selectedMarket && (
               <div className="absolute bottom-4 left-4 right-4 market-item selected z-10">
@@ -241,12 +319,20 @@ function App() {
               </div>
             )}
           </div>
+        ) : viewMode === 'detail' && selectedMarket ? (
+          <MarketDetail 
+            market={selectedMarket} 
+            onBack={handleBackToList}
+            marketNextOpening={selectedMarketNextOpening}
+          />
         ) : (
           <MarketList
             markets={markets}
             selectedMarket={selectedMarket}
-            onMarketSelect={setSelectedMarket}
+            onMarketSelect={handleMarketSelect}
             userLocation={defaultLocation}
+            initialDateFilter={currentDateFilter}
+            onDateFilterChange={setCurrentDateFilter}
           />
         )}
       </div>

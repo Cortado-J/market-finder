@@ -48,6 +48,15 @@ export function Map({ markets, selectedMarket, onMarketSelect, userLocation }: M
   const mapContainer = useRef<HTMLDivElement | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
   const homeMarker = useRef<mapboxgl.Marker | null>(null)
+  const isTouchDevice = useRef<boolean>(false)
+  
+  // Detect if device supports touch events
+  useEffect(() => {
+    isTouchDevice.current = ('ontouchstart' in window) || 
+                           (navigator.maxTouchPoints > 0) || 
+                           ('msMaxTouchPoints' in navigator && (navigator as any).msMaxTouchPoints > 0);
+    console.log('Is touch device:', isTouchDevice.current);
+  }, [])
 
   const clearMarkers = useCallback(() => {
     markersRef.current.forEach((marker: mapboxgl.Marker) => marker.remove())
@@ -107,20 +116,57 @@ export function Map({ markets, selectedMarket, onMarketSelect, userLocation }: M
       const distance = calculateDistance(userLocation, location)
       const color = selectedMarket?.market_id === market.market_id ? '#ef4444' : '#000000'
 
-      const marker = new mapboxgl.Marker({ color })
+      // Create a custom marker element
+      const el = document.createElement('div')
+      el.className = 'custom-marker'
+      el.style.backgroundColor = color
+      el.style.width = '24px' // Slightly larger for better touch targets
+      el.style.height = '24px'
+      el.style.borderRadius = '50%'
+      el.style.cursor = 'pointer'
+      el.style.border = '2px solid white' // Add border for better visibility
+      el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)' // Add shadow for depth
+      
+      // Create the marker
+      const marker = new mapboxgl.Marker(el)
         .setLngLat(location)
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 }).setHTML(
-            `<h3 class="text-lg font-bold">${market.name}</h3>
-            <p class="text-sm text-gray-600">${market.description}</p>
-            <p class="text-sm text-gray-600 mt-2">${(distance / 1000).toFixed(1)} km away</p>`
-          )
-        )
         .addTo(map)
+      
+      // Create popup with details and a button
+      const popup = new mapboxgl.Popup({ offset: 25, closeButton: true })
+        .setHTML(
+          `<div style="min-width: 180px;">
+            <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">${market.name}</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 8px;">${market.description || 'No description available'}</p>
+            <p style="font-size: 14px; color: #666; margin-bottom: 12px;">${(distance / 1000).toFixed(1)} km away</p>
+            <button class="popup-details-btn" style="background-color: #3b82f6; color: white; padding: 8px 12px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px;">View Market Details</button>
+          </div>`
+        )
 
-      // Add click event
-      marker.getElement().addEventListener('click', () => {
-        onMarketSelect(market)
+      // Attach popup to marker
+      marker.setPopup(popup);
+
+      if (!isTouchDevice.current) {
+        // Desktop: show popup on hover
+        el.addEventListener('mouseenter', () => {
+          popup.addTo(map)
+        })
+        el.addEventListener('mouseleave', () => {
+          popup.remove()
+        })
+      } else {
+        // Touch: show popup on tap
+        el.addEventListener('click', () => {
+          popup.addTo(map)
+        })
+      }
+
+      // When popup opens, attach click handler to details button
+      popup.on('open', () => {
+        const btn = document.querySelector('.popup-details-btn') as HTMLButtonElement
+        if (btn) {
+          btn.onclick = () => onMarketSelect(market)
+        }
       })
 
       markersRef.current.push(marker)

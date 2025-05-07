@@ -12,7 +12,6 @@ interface MarketDetailProps {
 
 export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetailProps) {
   const [isMobile, setIsMobile] = useState(false);
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   // Check if we're on mobile
   useEffect(() => {
@@ -29,7 +28,7 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
   }, []);
 
   // Generate image URL
-  const imageUrl = getMarketImageUrl(supabaseUrl, market.market_ref || null);
+  const imageUrl = getMarketImageUrl(market.market_ref || null);
   
   // Extract postcode from address if available
   const postcode = market.address ? 
@@ -130,7 +129,7 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
             {market.categories.map(cat => (
               <li key={cat} className="flex items-center mb-1">
                 <img
-                  src={getCategoryIconUrl(supabaseUrl, cat)}
+                  src={getCategoryIconUrl(cat)}
                   alt={cat}
                   className="w-[30px] h-[30px] mr-2"
                   onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}

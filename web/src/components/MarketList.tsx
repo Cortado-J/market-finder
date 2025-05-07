@@ -347,7 +347,6 @@ export function MarketList({
     return ['today', 'tomorrow', 'day-3', 'day-4', 'day-5', 'day-6', 'day-7'].includes(dateFilter);
   }, [dateFilter]);
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   return (
     <div className="space-y-4 p-4 font-sans">
@@ -419,7 +418,7 @@ export function MarketList({
                             {(market.categories ?? []).map(cat => (
                               <img
                                 key={cat}
-                                src={getCategoryIconUrl(supabaseUrl, cat)}
+                                src={getCategoryIconUrl(cat)}
                                 alt={cat}
                                 className="w-[30px] h-[30px]"
                                 onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -476,7 +475,7 @@ export function MarketList({
                   
                   {/* Market image on the right side */}
                   {market.market_ref && (() => {
-                    const imageUrl = getMarketImageUrl(supabaseUrl, market.market_ref);
+                    const imageUrl = getMarketImageUrl(market.market_ref);
                     return imageUrl ? (
                       <div className="flex-shrink-0 ml-2">
                         <img
