@@ -3,6 +3,7 @@ import { useMemo, useEffect, useState } from 'react'
 import { MarketOpening, getUpcomingMarketOpenings } from '../utils/getMarketOpenings'
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns'
 import { getMarketImageUrl, getCategoryIconUrl } from '../utils/imageUtils'
+import { useBankHolidays } from '../hooks/useBankHolidays'
 
 interface MarketListProps {
   markets: Market[]
@@ -49,6 +50,102 @@ export function MarketList({
   onDateFilterChange
 }: MarketListProps) {
   const [openings, setOpenings] = useState<MarketOpening[]>([]);
+  const { isBankHoliday: realBankHolidayCheck } = useBankHolidays();
+  
+  // Enhanced bank holiday check for testing - shows indicator if it's a bank holiday OR the day is divisible by 5
+  const isBankHoliday = (date: Date) => {
+    const realHoliday = realBankHolidayCheck(date);
+    const dayOfMonth = date.getDate();
+    
+    // If it's a real bank holiday or the day is divisible by 5, create a mock bank holiday
+    if (realHoliday || (dayOfMonth % 5 === 0)) {
+      return realHoliday || {
+        title: dayOfMonth % 5 === 0 ? `Test Holiday (${dayOfMonth})` : 'Unknown Holiday',
+        date: format(date, 'yyyy-MM-dd'),
+        notes: 'This is a test bank holiday for development purposes',
+        bunting: true
+      };
+    }
+    
+    return null;
+  };
+  
+  // Function to check if the current filter includes any bank holidays
+  const getBankHolidaysInCurrentFilter = () => {
+    const today = new Date();
+    const holidays = [];
+    
+    // Check based on current filter
+    if (dateFilter === 'today') {
+      const holiday = isBankHoliday(today);
+      if (holiday) holidays.push(holiday);
+    } 
+    else if (dateFilter === 'tomorrow') {
+      const tomorrow = addDays(today, 1);
+      const holiday = isBankHoliday(tomorrow);
+      if (holiday) holidays.push(holiday);
+    }
+    else if (dateFilter === 'next-14-days') {
+      // Check next 14 days
+      for (let i = 0; i < 14; i++) {
+        const date = addDays(today, i);
+        const holiday = isBankHoliday(date);
+        if (holiday) holidays.push(holiday);
+      }
+    }
+    else if (dateFilter.startsWith('day-')) {
+      // For day-specific filters, find the matching date from dayNames
+      const matchingDay = dayNames.find(day => day.filter === dateFilter);
+      if (matchingDay && matchingDay.date) {
+        const holiday = isBankHoliday(matchingDay.date);
+        if (holiday) holidays.push(holiday);
+      }
+    }
+    
+    return holidays;
+  };
+  
+  // Render bank holiday notification if applicable
+  const renderBankHolidayNotification = () => {
+    const holidays = getBankHolidaysInCurrentFilter();
+    
+    if (holidays.length === 0) return null;
+    
+    return (
+      <div className="mt-2 p-3 bg-orange-100 text-orange-800 rounded-md text-sm">
+        <div className="flex items-start">
+          <div className="flex-shrink-0 mt-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="font-medium">Bank Holiday{holidays.length > 1 ? 's' : ''}</h3>
+            <div className="mt-1">
+              {holidays.length === 1 ? (
+                <p>
+                  {format(parseISO(holidays[0].date), 'EEEE do MMMM')} is a bank holiday ({holidays[0].title}). 
+                  Market schedules may differ from standard opening times.
+                </p>
+              ) : (
+                <div>
+                  <p>The following bank holidays are in this time period:</p>
+                  <ul className="list-disc list-inside mt-1">
+                    {holidays.map(holiday => (
+                      <li key={holiday.date}>
+                        {format(parseISO(holiday.date), 'EEEE do MMMM')} - {holiday.title}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-1">Market schedules may differ from standard opening times on these days.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
   const [dateFilter, setDateFilter] = useState<DateFilter>(initialDateFilter); // Use initialDateFilter
   
   // Handle date filter changes and notify parent component
@@ -351,7 +448,7 @@ export function MarketList({
   return (
     <div className="space-y-4 p-4 font-sans">
       {/* Date filter controls - scrollable horizontally */}
-      <div className="overflow-x-auto pb-4 border-b border-gray-200">
+      <div className="overflow-x-auto pb-2 border-b border-gray-200">
         <div className="flex space-x-3 min-w-max pb-2">
           <button 
             onClick={() => handleDateFilterChange('today')}
@@ -386,6 +483,9 @@ export function MarketList({
             Next 14 Days
           </button>
         </div>
+        
+        {/* Bank holiday notification */}
+        {renderBankHolidayNotification()}
       </div>
       
       {/* Market list - styled with light blue boxes */}
