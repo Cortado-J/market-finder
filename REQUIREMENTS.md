@@ -26,6 +26,11 @@ Market Finder provides a simple, intuitive experience for finding local markets,
 - Market categories with icons
 - Market images
 
+### Data Scope
+- Initially we will restrict to markets in England and Wales
+(If we need to expand to include Sctoland & Northern Ireland we will need to deal with "regions" because bank holidays are different in each region)
+Governement API: https://www.gov.uk/bank-holidays.json could be used)
+
 ### 2. User Interface
 
 #### List View
