@@ -1,13 +1,13 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Market } from '../types/Market'
+import { getMarketImageUrl } from '../utils/imageUtils'
 
 const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN
 if (!mapboxToken) {
-  console.error('Mapbox token is missing. Please add VITE_MAPBOX_TOKEN to .env.local')
+  console.error('Mapbox token missing! Please add VITE_MAPBOX_TOKEN to your .env file')
 }
-mapboxgl.accessToken = mapboxToken
 
 interface MapProps {
   markets: Market[]
@@ -17,75 +17,72 @@ interface MapProps {
 }
 
 function parseLocation(location: Market['location']): [number, number] | null {
+  if (!location) return null
+  
   if (typeof location === 'string') {
-    // Parse PostGIS point string format: 'POINT(lng lat)'
-    const matches = location.match(/POINT\(([\d.-]+)\s+([\d.-]+)\)/)
-    if (matches) {
+    // Parse from POINT(lon lat) format
+    const matches = location.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/)
+    if (matches && matches.length >= 3) {
       return [parseFloat(matches[1]), parseFloat(matches[2])]
     }
     return null
   }
-  return location.coordinates
+  
+  // Handle GeoJSON format
+  if (location.coordinates && Array.isArray(location.coordinates) && location.coordinates.length >= 2) {
+    return [location.coordinates[0], location.coordinates[1]]
+  }
+  
+  return null
 }
 
-function calculateDistance(
-  [lon1, lat1]: [number, number],
-  [lon2, lat2]: [number, number]
-): number {
-  const R = 6371 // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-  return R * c
-}
-
-export function Map({ markets, selectedMarket, onMarketSelect, userLocation }: MapProps) {
-  const mapRef = useRef<mapboxgl.Map | null>(null)
+export function Map({ 
+  markets, 
+  selectedMarket, 
+  onMarketSelect, 
+  userLocation
+}: MapProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
   const homeMarker = useRef<mapboxgl.Marker | null>(null)
   const isTouchDevice = useRef<boolean>(false)
   
-  // Detect if device supports touch events
+  // Check if device is touch-enabled
   useEffect(() => {
-    isTouchDevice.current = ('ontouchstart' in window) || 
-                           (navigator.maxTouchPoints > 0) || 
-                           ('msMaxTouchPoints' in navigator && (navigator as any).msMaxTouchPoints > 0);
-    console.log('Is touch device:', isTouchDevice.current);
+    isTouchDevice.current = 'ontouchstart' in window || navigator.maxTouchPoints > 0
   }, [])
-
+  
+  // Clear all markers from the map
   const clearMarkers = useCallback(() => {
-    markersRef.current.forEach((marker: mapboxgl.Marker) => marker.remove())
+    markersRef.current.forEach(marker => marker.remove())
     markersRef.current = []
   }, [])
-
+  
+  // Initialize map
   useEffect(() => {
     if (!mapContainer.current) return
-
+    
+    mapboxgl.accessToken = mapboxToken as string
+    
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
       center: userLocation,
-      zoom: 12
+      zoom: 11
     })
-
+    
+    map.on('load', () => {
+      console.log('Map loaded')
+    })
+    
     mapRef.current = map
-
+    
     // Add home marker
-    homeMarker.current = new mapboxgl.Marker({
-      color: '#3b82f6', // blue-500
-      scale: 1.2
-    })
+    homeMarker.current = new mapboxgl.Marker({ color: '#FF0000' })
       .setLngLat(userLocation)
       .addTo(map)
-
-    // Add navigation controls
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right')
-
+    
     // Add geolocate control
     map.addControl(
       new mapboxgl.GeolocateControl({
@@ -93,99 +90,116 @@ export function Map({ markets, selectedMarket, onMarketSelect, userLocation }: M
           enableHighAccuracy: true
         },
         trackUserLocation: true
-      }),
-      'top-right'
+      })
     )
-
-    // Clean up on unmount
-    return () => map.remove()
-  }, [userLocation]) // Re-run if user location changes
-
+    
+    // Add zoom controls
+    map.addControl(new mapboxgl.NavigationControl())
+    
+    return () => {
+      map.remove()
+      mapRef.current = null
+    }
+  }, [userLocation])
+  
+  // Add markers for markets
   useEffect(() => {
-    const map = mapRef.current
-    if (!map) return
-
-    // Clear existing markers
+    if (!mapRef.current) return
+    
     clearMarkers()
-
-    // Add new markers for each market
+    
     markets.forEach(market => {
-      const location = parseLocation(market.location)
-      if (!location) return
-
-      const distance = calculateDistance(userLocation, location)
-      const color = selectedMarket?.market_id === market.market_id ? '#ef4444' : '#000000'
-
-      // Create a custom marker element
-      const el = document.createElement('div')
-      el.className = 'custom-marker'
-      el.style.backgroundColor = color
-      el.style.width = '24px' // Slightly larger for better touch targets
-      el.style.height = '24px'
-      el.style.borderRadius = '50%'
-      el.style.cursor = 'pointer'
-      el.style.border = '2px solid white' // Add border for better visibility
-      el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)' // Add shadow for depth
+      const coords = parseLocation(market.location)
+      if (!coords) return
       
-      // Create the marker
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat(location)
-        .addTo(map)
+      // Create popup
+      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+        <div class="map-popup">
+          <h3 class="text-lg font-semibold">${market.name}</h3>
+          <p class="text-sm text-gray-600">${market.address}</p>
+          <button class="mt-2 px-3 py-1 bg-blue-500 text-white rounded-md text-sm view-details-btn">
+            View Market Details
+          </button>
+        </div>
+      `)
       
-      // Create popup with details and a button
-      const popup = new mapboxgl.Popup({ offset: 25, closeButton: true })
-        .setHTML(
-          `<div style="min-width: 180px;">
-            <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">${market.name}</h3>
-            <p style="font-size: 14px; color: #666; margin-bottom: 8px;">${market.description || 'No description available'}</p>
-            <p style="font-size: 14px; color: #666; margin-bottom: 12px;">${(distance / 1000).toFixed(1)} km away</p>
-            <button class="popup-details-btn" style="background-color: #3b82f6; color: white; padding: 8px 12px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px;">View Market Details</button>
-          </div>`
-        )
-
-      // Attach popup to marker
-      marker.setPopup(popup);
-
+      // Add click handler to popup button
+      popup.on('open', () => {
+        setTimeout(() => {
+          const btn = document.querySelector('.view-details-btn')
+          if (btn) {
+            btn.addEventListener('click', (e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onMarketSelect(market)
+            })
+          }
+        }, 10)
+      })
+      
+      // Create marker
+      const marker = new mapboxgl.Marker()
+        .setLngLat(coords)
+        .setPopup(popup)
+      
+      // Add hover tooltip for desktop only
       if (!isTouchDevice.current) {
-        // Desktop: show popup on hover
-        el.addEventListener('mouseenter', () => {
-          popup.addTo(map)
+        const markerElement = marker.getElement()
+        markerElement.addEventListener('mouseenter', () => {
+          const tooltip = document.createElement('div')
+          tooltip.className = 'market-tooltip'
+          tooltip.innerHTML = `
+            <div class="p-2 bg-white rounded shadow text-sm">
+              ${market.name}
+            </div>
+          `
+          markerElement.appendChild(tooltip)
         })
-        el.addEventListener('mouseleave', () => {
-          popup.remove()
-        })
-      } else {
-        // Touch: show popup on tap
-        el.addEventListener('click', () => {
-          popup.addTo(map)
+        
+        markerElement.addEventListener('mouseleave', () => {
+          const tooltip = markerElement.querySelector('.market-tooltip')
+          if (tooltip) {
+            markerElement.removeChild(tooltip)
+          }
         })
       }
-
-      // When popup opens, attach click handler to details button
-      popup.on('open', () => {
-        const btn = document.querySelector('.popup-details-btn') as HTMLButtonElement
-        if (btn) {
-          btn.onclick = () => onMarketSelect(market)
-        }
-      })
-
+      
+      marker.addTo(mapRef.current)
       markersRef.current.push(marker)
     })
-
-    // Pan to selected market if exists
+    
+    // If there's a selected market, fly to it
     if (selectedMarket) {
-      const location = parseLocation(selectedMarket.location)
-      if (location && map) {
-        map.flyTo({
-          center: location,
-          zoom: 15,
+      const coords = parseLocation(selectedMarket.location)
+      if (coords && mapRef.current) {
+        mapRef.current.flyTo({
+          center: coords,
+          zoom: 14,
           essential: true
+        })
+        
+        // Find and open the popup for the selected market
+        markersRef.current.forEach(marker => {
+          const markerCoords = marker.getLngLat()
+          if (markerCoords.lng === coords[0] && markerCoords.lat === coords[1]) {
+            marker.togglePopup()
+          }
         })
       }
     }
-  }, [markets, selectedMarket, onMarketSelect, userLocation, clearMarkers])
-
+  }, [markets, selectedMarket, clearMarkers, onMarketSelect])
+  
   return (
-    <div ref={mapContainer} className="w-full h-full" />
+    <div className="relative w-full h-full">
+      {/* Map container */}
+      <div 
+        ref={mapContainer} 
+        className="map-container" 
+        style={{ 
+          width: '100%', 
+          height: '100%'
+        }}
+      ></div>
+    </div>
   )
 }

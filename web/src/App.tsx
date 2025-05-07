@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { supabase } from './utils/supabase'
 import { Map } from './components/Map'
 import { MarketList } from './components/MarketList'
@@ -6,6 +6,10 @@ import { MarketDetail } from './components/MarketDetail'
 import { Market } from './types/Market'
 import { getMarketImageUrl } from './utils/imageUtils'
 import { MarketOpening, getUpcomingMarketOpenings } from './utils/getMarketOpenings'
+import { WhenMode, WhenModeToggle } from './components/WhenModeToggle'
+import { Weekday, WeekdaySelector } from './components/WeekdaySelector'
+import { format, addDays } from 'date-fns'
+import { calculateDistance, getCoordinates } from './utils/locationUtils'
 import './App.css'
 
 // Date filter type (must match the one in MarketList)
@@ -13,34 +17,6 @@ type DateFilter = 'today' | 'tomorrow' | 'day-3' | 'day-4' | 'day-5' | 'day-6' |
 
 // View mode type
 type ViewMode = 'list' | 'map' | 'detail';
-
-// Helper function to calculate distance between two coordinates
-function calculateDistance(
-  [lon1, lat1]: [number, number],
-  [lon2, lat2]: [number, number]
-): number {
-  // Haversine formula for calculating distance between two points
-  const R = 6371 // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-  return R * c
-}
-
-// Helper function to get coordinates from market location
-function getCoordinates(market: Market): [number, number] | null {
-  if (typeof market.location === 'string') {
-    const matches = market.location.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/)
-    return matches ? [parseFloat(matches[1]), parseFloat(matches[2])] : null
-  }
-  return market.location.coordinates
-}
-
-// Using shared Supabase client from utils/supabase.ts
 
 // Default location coordinates for BS7 8LZ
 const defaultLocation: [number, number] = [-2.5973, 51.4847]
@@ -52,8 +28,10 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('list') // Default to list view
   const [marketOpenings, setMarketOpenings] = useState<MarketOpening[]>([]);
-  // State for preserving date filter selection
+  // State for preserving filter selections
   const [currentDateFilter, setCurrentDateFilter] = useState<DateFilter>('today');
+  const [currentWhenMode, setCurrentWhenMode] = useState<WhenMode>('soon');
+  const [selectedWeekdays, setSelectedWeekdays] = useState<Weekday[]>(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
 
   useEffect(() => {
     async function fetchMarkets() {
@@ -112,7 +90,7 @@ function App() {
               website_url: market.website_url,
               opening_hours: openingHoursMap[market.market_id] || null,
               market_ref: marketRefMap[market.market_id] || null,
-              imageUrl: getMarketImageUrl(marketRefMap[market.market_id]),
+              imageUrl: getMarketImageUrl(marketRefMap[market.market_id] || ''),
               categories,
               location: {
                 type: 'Point',
@@ -160,7 +138,7 @@ function App() {
               website_url: market.website_url,
               opening_hours: openingHoursMap[market.market_id] || null,
               market_ref: marketRefMap[market.market_id] || null,
-              imageUrl: getMarketImageUrl(marketRefMap[market.market_id]),
+              imageUrl: getMarketImageUrl(marketRefMap[market.market_id] || ''),
               categories,
               location: {
                 type: 'Point',
@@ -177,7 +155,7 @@ function App() {
             ...market,
             opening_hours: openingHoursMap[market.market_id] || null,
             market_ref: marketRef,
-            imageUrl: getMarketImageUrl(marketRef),
+            imageUrl: getMarketImageUrl(marketRef || ''),
             categories: categoriesMap[market.market_id] || []
           }
         })
@@ -249,46 +227,222 @@ function App() {
     }
   };
   
+  // Listen for toggle-view-mode events from the MarketList component
+  useEffect(() => {
+    const handleToggleViewMode = (event: CustomEvent) => {
+      const mode = event.detail as ViewMode;
+      if (mode === 'list' || mode === 'map') {
+        setViewMode(mode);
+      }
+    };
+    
+    window.addEventListener('toggle-view-mode', handleToggleViewMode as EventListener);
+    
+    return () => {
+      window.removeEventListener('toggle-view-mode', handleToggleViewMode as EventListener);
+    };
+  }, []);
+  
   // Find next opening for selected market
   const selectedMarketNextOpening = selectedMarket ? 
     marketOpenings.find(opening => opening.marketId === selectedMarket.market_id) : 
     undefined;
+
+  // For debugging - log the markets array
+  useEffect(() => {
+    console.log('Markets array:', markets);
+    console.log('Current when mode:', currentWhenMode);
+    console.log('Current date filter:', currentDateFilter);
+    console.log('Selected weekdays:', selectedWeekdays);
+  }, [markets, currentWhenMode, currentDateFilter, selectedWeekdays]);
+
+  // For debugging - log the raw markets array
+  useEffect(() => {
+    console.log('Raw markets array:', markets);
+    console.log('Raw markets length:', markets.length);
+  }, [markets]);
+
+  // Filter markets based on date filter and weekdays
+  const filteredMarkets = useMemo(() => {
+    // For debugging
+    console.log('Filtering markets:', markets.length);
+    console.log('Current when mode:', currentWhenMode);
+    console.log('Current date filter:', currentDateFilter);
+    console.log('Selected weekdays:', selectedWeekdays);
+    
+    if (currentWhenMode === 'soon') {
+      // Filter by date
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      // Create dates for day-3 through day-7
+      const nextDays = [];
+      for (let i = 2; i <= 6; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() + i);
+        nextDays.push(date);
+      }
+      
+      // Get the date for the selected filter
+      let filterDate: Date | null = null;
+      
+      switch (currentDateFilter) {
+        case 'today':
+          filterDate = today;
+          break;
+        case 'tomorrow':
+          filterDate = tomorrow;
+          break;
+        case 'day-3':
+          filterDate = nextDays[0];
+          break;
+        case 'day-4':
+          filterDate = nextDays[1];
+          break;
+        case 'day-5':
+          filterDate = nextDays[2];
+          break;
+        case 'day-6':
+          filterDate = nextDays[3];
+          break;
+        case 'day-7':
+          filterDate = nextDays[4];
+          break;
+        case 'next-14-days':
+          // For 'next-14-days', we'll just show all markets
+          return markets;
+      }
+      
+      if (!filterDate) return markets;
+      
+      const dayOfWeek = format(filterDate, 'EEEE').toLowerCase();
+      console.log('Filtering by day of week:', dayOfWeek);
+      
+      // For Soon mode, just return all markets for now to debug the issue
+      console.log('Soon mode - day of week:', dayOfWeek);
+      console.log('Soon mode - returning all markets');
+      return markets;
+    } else {
+      // Week mode - filter by selected weekdays
+      if (selectedWeekdays.length === 0) return [];
+      if (selectedWeekdays.length === 7) return markets; // All days selected, show all markets
+      
+      return markets.filter(market => {
+        if (!market.opening_hours) return true;
+        
+        // Check if market is open on any of the selected weekdays
+        return selectedWeekdays.some(day => {
+          const dayName = day.toLowerCase();
+          return market.opening_hours!.toLowerCase().includes(dayName);
+        });
+      });
+    }
+  }, [markets, currentDateFilter, currentWhenMode, selectedWeekdays]);
   
   if (loading) return <div className="p-4">Loading markets...</div>
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>
 
   return (
     <div className="app">
-      <div className="content">
-        {/* View toggle button */}
-        <div className="flex justify-center my-4">
-          <div className="inline-flex rounded-md shadow-sm" role="group">
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`px-4 py-2 text-sm font-medium rounded-l-lg ${viewMode === 'list' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-900 border border-gray-200 hover:bg-gray-100'}`}
-            >
-              List View
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('map')}
-              className={`px-4 py-2 text-sm font-medium rounded-r-lg ${viewMode === 'map' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-900 border border-gray-200 hover:bg-gray-100'}`}
-            >
-              Map View
-            </button>
+      {/* Fixed header with navigation controls */}
+      {viewMode !== 'detail' && (
+        <div className="fixed top-0 left-0 right-0 z-10 bg-white p-4 shadow-md">
+          {/* Top row: Soon/Week and List/Map toggles */}
+          <div className="flex justify-between items-center button-row-gap" style={{marginBottom: '40px'}}>
+            {/* Soon/Week Toggle */}
+            <WhenModeToggle
+              initialMode={currentWhenMode}
+              onModeChange={setCurrentWhenMode}
+            />
+            
+            {/* List/Map Toggle */}
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`filter-button ${viewMode === 'list' ? 'active' : ''}`}
+              >
+                List
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('map')}
+                className={`filter-button ${viewMode === 'map' ? 'active' : ''}`}
+              >
+                Map
+              </button>
+            </div>
           </div>
+          
+          {/* Soon Mode: Date filter controls */}
+          {currentWhenMode === 'soon' && (
+            <div className="overflow-x-auto pb-2">
+              <div className="flex space-x-3 min-w-max pb-2">
+                <button 
+                  onClick={() => setCurrentDateFilter('today')}
+                  className={`filter-button ${currentDateFilter === 'today' ? 'active' : ''}`}
+                >
+                  Today
+                </button>
+                <button 
+                  onClick={() => setCurrentDateFilter('tomorrow')}
+                  className={`filter-button ${currentDateFilter === 'tomorrow' ? 'active' : ''}`}
+                >
+                  Tomorrow
+                </button>
+                
+                {/* Next 5 days as individual buttons */}
+                {Array.from({ length: 5 }).map((_, index) => {
+                  const dayNum = index + 3; // day-3, day-4, etc.
+                  const date = addDays(new Date(), index + 2); // +2 because we start from day after tomorrow
+                  const dayName = format(date, 'EEE');
+                  const dayOfMonth = date.getDate();
+                  const filterName = `day-${dayNum}`;
+                  
+                  return (
+                    <button 
+                      key={filterName}
+                      onClick={() => setCurrentDateFilter(filterName as DateFilter)}
+                      className={`filter-button ${currentDateFilter === filterName ? 'active' : ''}`}
+                    >
+                      {dayName} {dayOfMonth}
+                    </button>
+                  );
+                })}
+                
+                <button 
+                  onClick={() => setCurrentDateFilter('next-14-days')}
+                  className={`filter-button ${currentDateFilter === 'next-14-days' ? 'active' : ''}`}
+                >
+                  Next 14 Days
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Week Mode: Weekday selector */}
+          {currentWhenMode === 'week' && (
+            <div className="pb-4">
+              <WeekdaySelector 
+                selectedDays={selectedWeekdays}
+                onChange={setSelectedWeekdays}
+              />
+            </div>
+          )}
         </div>
+      )}
 
+      {/* Content area with appropriate padding for the fixed header */}
+      <div className="content" style={{ 
+        paddingTop: viewMode !== 'detail' ? 
+          (currentWhenMode === 'soon' ? '160px' : '160px') : '0px'
+      }}>
         {/* Conditional rendering based on view mode */}
         {viewMode === 'map' ? (
-          <div className="map-container relative" style={{ height: 'calc(100vh - 120px)' }}>
+          <div className="map-container relative" style={{ height: 'calc(100vh - 160px)' }}>
             <Map
-              markets={markets}
+              markets={filteredMarkets}
               selectedMarket={selectedMarket}
               userLocation={defaultLocation}
               onMarketSelect={handleMarketSelect}
@@ -315,24 +469,36 @@ function App() {
                   {selectedMarket.opening_hours && (
                     <p className="text-sm mt-1 opacity-90">Regular hours: {selectedMarket.opening_hours}</p>
                   )}
+                  
+                  {/* Next opening */}
+                  {selectedMarketNextOpening && selectedMarketNextOpening.date && (
+                    <p className="text-sm mt-1 text-green-600">
+                      Next open: {format(new Date(selectedMarketNextOpening.date), 'EEE, MMM d')}
+                    </p>
+                  )}
+                  
+                  {/* View details button */}
+                  <button 
+                    className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-md"
+                    onClick={() => handleMarketSelect(selectedMarket)}
+                  >
+                    View Market Details
+                  </button>
                 </div>
               </div>
             )}
           </div>
-        ) : viewMode === 'detail' && selectedMarket ? (
-          <MarketDetail 
-            market={selectedMarket} 
-            onBack={handleBackToList}
-            marketNextOpening={selectedMarketNextOpening}
-          />
-        ) : (
-          <MarketList
-            markets={markets}
+        ) : viewMode === 'list' ? (
+          <MarketList 
+            markets={filteredMarkets}
             selectedMarket={selectedMarket}
             onMarketSelect={handleMarketSelect}
             userLocation={defaultLocation}
-            initialDateFilter={currentDateFilter}
-            onDateFilterChange={setCurrentDateFilter}
+          />
+        ) : (
+          <MarketDetail 
+            market={selectedMarket!}
+            onBack={handleBackToList}
           />
         )}
       </div>

@@ -38,6 +38,11 @@ body, html {
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
+/* Button row spacing */
+.button-row-gap {
+  margin-bottom: 10px !important;
+}
+
 /* Market item styling */
 .market-item {
   background-color: #dbeafe; /* light blue (blue-100) */
