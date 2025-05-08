@@ -331,19 +331,32 @@ function App() {
         )
       );
     } else {
-      // Week mode - filter by selected weekdays
+      // Week mode - filter by selected weekdays using parsed market openings
       if (selectedWeekdays.length === 0) return [];
-      if (selectedWeekdays.length === 7) return markets; // All days selected, show all markets
-      
-      return markets.filter(market => {
-        if (!market.opening_hours) return true;
-        
-        // Check if market is open on any of the selected weekdays
-        return selectedWeekdays.some(day => {
-          const dayName = day.toLowerCase();
-          return market.opening_hours!.toLowerCase().includes(dayName);
-        });
+      if (selectedWeekdays.length === 7) return markets;
+
+      // Map weekday strings to numeric DOW (0 = Sunday ... 6 = Saturday)
+      const weekdayToDOW: { [key in Weekday]: number } = {
+        sunday: 0,
+        monday: 1,
+        tuesday: 2,
+        wednesday: 3,
+        thursday: 4,
+        friday: 5,
+        saturday: 6,
+      };
+
+      const selectedDayNumbers = selectedWeekdays.map(day => weekdayToDOW[day]);
+
+      // Collect market IDs with openings on selected days
+      const marketIdsWithSelectedDays = new Set<number>();
+      marketOpenings.forEach(opening => {
+        if (opening.dow !== undefined && selectedDayNumbers.includes(opening.dow)) {
+          marketIdsWithSelectedDays.add(opening.marketId);
+        }
       });
+
+      return markets.filter(market => marketIdsWithSelectedDays.has(market.market_id));
     }
   }, [markets, currentWhenMode, currentDateFilter, selectedWeekdays, marketOpenings]);
   
