@@ -424,10 +424,9 @@ function App() {
             </div>
           </div>
           
-          {/* Soon Mode: Date filter controls */}
+          {/* Soon Mode: Date filter controls - with horizontal scrolling for iOS */}
           {currentWhenMode === 'soon' && (
-            <div className="overflow-x-auto pb-2">
-              <div className="flex space-x-3 min-w-max pb-2">
+            <div className="date-scroll-container">
                 <button 
                   onClick={() => setCurrentDateFilter('today')}
                   className={`filter-button ${currentDateFilter === 'today' ? 'active' : ''}`}
@@ -466,7 +465,6 @@ function App() {
                 >
                   Next 14 Days
                 </button>
-              </div>
             </div>
           )}
           
@@ -485,7 +483,7 @@ function App() {
       {/* Content area with appropriate padding for the fixed header */}
       <div className="content" style={{ 
         paddingTop: viewMode !== 'detail' ? 
-          (currentWhenMode === 'soon' ? '160px' : '160px') : '0px'
+          (currentWhenMode === 'soon' ? '95px' : '95px') : '0px'
       }}>
         {/* Conditional rendering based on view mode */}
         {viewMode === 'map' ? (

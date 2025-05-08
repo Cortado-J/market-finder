@@ -29,6 +29,15 @@ body, html {
   white-space: nowrap;
 }
 
+/* Responsive filter buttons for mobile */
+@media (max-width: 640px) {
+  .filter-button {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.6rem;
+    min-width: 0;
+  }
+}
+
 .filter-button:hover {
   background-color: #2563eb; /* blue-600 */
 }
@@ -41,6 +50,41 @@ body, html {
 /* Button row spacing */
 .button-row-gap {
   margin-bottom: 10px !important;
+}
+
+/* iOS scrolling fix */
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.ios-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Date button scrolling container - iOS compatible */
+.date-scroll-container {
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 1rem 0.5rem 1rem;
+  width: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.date-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Make buttons display inline in the scrolling container */
+.date-scroll-container button {
+  display: inline-block;
+  margin-right: 0.5rem;
 }
 
 /* Market item styling */
