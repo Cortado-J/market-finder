@@ -16,7 +16,47 @@ function ordinalText(n: number): string {
 
 export function humanizeOpeningHours(schedule: string): string {
   if (!schedule) return '';
-  // Split into segments (e.g. multiple rules separated by ';')
+  
+  // Handle special patterns like Th[1,3] directly
+  const ordinalPattern = /([A-Za-z]{2})\[([\d,\s-]+)\]\s+(\d{1,2}:\d{2}-\d{1,2}:\d{2})/;
+  const ordinalMatch = schedule.match(ordinalPattern);
+  
+  if (ordinalMatch) {
+    const dayCode = ordinalMatch[1];
+    const ordinalStr = ordinalMatch[2];
+    const timeStr = ordinalMatch[3].replace('-', ' to ');
+    
+    const dow = dayMap[dayCode] || dayCode;
+    const ordinals = ordinalStr.split(',').map(n => n.trim()).filter(Boolean);
+    
+    if (ordinals.length === 1) {
+      const num = parseInt(ordinals[0], 10);
+      if (num === -1) {
+        return `Last ${dow} of the month ${timeStr}`;
+      }
+      if (num === -2) {
+        return `Penultimate ${dow} of the month ${timeStr}`;
+      }
+      return `${ordinalText(num)} ${dow} of the month ${timeStr}`;
+    } else {
+      const lastOrdinal = ordinals.pop();
+      const formattedOrdinals = ordinals.map(n => {
+        const num = parseInt(n, 10);
+        if (num === -1) return "Last";
+        if (num === -2) return "Penultimate";
+        return ordinalText(num);
+      }).join(", ");
+      
+      const lastNum = parseInt(lastOrdinal!, 10);
+      const lastOrdinalText = lastNum === -1 ? "Last" : 
+                           lastNum === -2 ? "Penultimate" : 
+                           ordinalText(lastNum);
+      
+      return `${formattedOrdinals} and ${lastOrdinalText} ${dow} ${timeStr}`;
+    }
+  }
+  
+  // Use the normal processing for other patterns
   return schedule.split(';').map(segment => {
     const part = segment.trim();
     // Extract time intervals (e.g. "09:00-16:00,17:00-20:00")
@@ -48,17 +88,39 @@ export function humanizeOpeningHours(schedule: string): string {
 }
 
 function humanizeDays(dp: string): string {
-  const repeatMatch = dp.match(/^([A-Za-z]{2})\[(\-?\d+)\]$/);
-  if (repeatMatch) {
-    const dow = dayMap[repeatMatch[1]] || repeatMatch[1];
-    const num = parseInt(repeatMatch[2], 10);
-    if (num === -1) {
-      return `Last ${dow} of the month`;
+  // Handle multiple ordinals like Th[1,3] (first and third Thursday)
+  const multiOrdinalMatch = dp.match(/^([A-Za-z]{2})\[([\d,\s-]+)\]$/);
+  if (multiOrdinalMatch) {
+    const dow = dayMap[multiOrdinalMatch[1]] || multiOrdinalMatch[1];
+    const ordinals = multiOrdinalMatch[2].split(',').map(n => n.trim()).filter(Boolean);
+    
+    if (ordinals.length === 1) {
+      // Single ordinal case
+      const num = parseInt(ordinals[0], 10);
+      if (num === -1) {
+        return `Last ${dow} of the month`;
+      }
+      if (num === -2) {
+        return `Penultimate ${dow} of the month`;
+      }
+      return `${ordinalText(num)} ${dow} of the month`;
+    } else {
+      // Multiple ordinals case
+      const lastOrdinal = ordinals.pop();
+      const formattedOrdinals = ordinals.map(n => {
+        const num = parseInt(n, 10);
+        if (num === -1) return "Last";
+        if (num === -2) return "Penultimate";
+        return ordinalText(num);
+      }).join(", ");
+      
+      const lastNum = parseInt(lastOrdinal!, 10);
+      let lastOrdinalText = lastNum === -1 ? "Last" : 
+                          lastNum === -2 ? "Penultimate" : 
+                          ordinalText(lastNum);
+      
+      return `${formattedOrdinals} and ${lastOrdinalText} ${dow} of the month`;
     }
-    if (num === -2) {
-      return `Penultimate ${dow} of the month`;
-    }
-    return `${ordinalText(num)} ${dow} of the month`;
   }
   if (dp.includes('-')) {
     const [start, end] = dp.split('-');
