@@ -113,12 +113,12 @@ export function MarketList({
                 onClick={() => onMarketSelect(market)}
               >
                 <div className="flex items-start">
-                  <div className="market-image-container w-16 h-16 mr-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
+                  <div className="market-image-container market-image w-8 h-8 mr-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
                     {market.market_ref ? (
                       <img 
                         src={getMarketImageUrl(market.market_ref)}
                         alt={market.name}
-                        className="w-full h-full object-cover"
+                        className="object-contain object-center w-full h-full"
                         onError={(e) => {
                           // Hide the image and show initials instead
                           e.currentTarget.style.display = 'none';
@@ -132,7 +132,7 @@ export function MarketList({
                     ) : null}
                     {/* Fallback to initials if no image or image fails to load */}
                     <div 
-                      className="absolute inset-0 w-full h-full flex items-center justify-center text-blue-800 font-bold text-sm"
+                      className="absolute inset-0 w-full h-full flex items-center justify-center text-blue-800 font-bold text-xs"
                       style={{ display: market.market_ref ? 'none' : 'flex' }}
                     >
                       {market.name.substring(0, 2).toUpperCase()}

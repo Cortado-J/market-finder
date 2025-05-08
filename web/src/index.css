@@ -44,6 +44,19 @@ body, html {
 }
 
 /* Market item styling */
+
+.market-image {
+  width: 6rem !important;
+  height: 6rem !important;
+  max-width: 6rem !important;
+  max-height: 6rem !important;
+  min-width: 6rem !important;
+  min-height: 6rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
 .market-item {
   background-color: #dbeafe; /* light blue (blue-100) */
   border-radius: 0.5rem;
