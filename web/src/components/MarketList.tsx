@@ -95,10 +95,10 @@ export function MarketList({
       
       {/* Market list - styled with light blue boxes */}
       <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-200px)]">
-        {markets.length === 0 ? (
+        {sortedMarkets.length === 0 ? (
           <div className="text-gray-500 py-8 text-center">No markets found for this time period</div>
         ) : (
-          markets.map(market => {
+          sortedMarkets.map(market => {
             // Get coordinates for distance calculation
             const coords = getCoordinates(market);
             const distance = coords ? calculateDistance(userLocation, coords) : null;
@@ -112,8 +112,8 @@ export function MarketList({
                 className={`market-item p-4 bg-blue-50 rounded-lg shadow-sm relative ${selectedMarket?.market_id === market.market_id ? 'selected' : ''}`}
                 onClick={() => onMarketSelect(market)}
               >
-                <div className="flex items-start">
-                  <div className="market-image-container market-image w-8 h-8 mr-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
+                <div className="flex items-start flex-row-reverse">
+                  <div className="market-image-container market-image w-8 h-8 ml-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
                     {market.market_ref ? (
                       <img 
                         src={getMarketImageUrl(market.market_ref)}
@@ -140,13 +140,15 @@ export function MarketList({
                   </div>
                   
                   <div className="flex-grow">
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="market-name text-lg font-semibold text-blue-900 break-words">{market.name}</h3>
+                      {distance && <span className="market-distance text-sm text-gray-500">({Math.round(distance * 0.621371)} miles)</span>}
+                    </div>
                     {nextOpening && !nextOpening.error && nextOpening.formattedDate && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Next open: {nextOpening.formattedDate}
                       </span>
                     )}
-                    <h3 className="market-name text-lg font-semibold text-blue-900 break-words">{market.name}</h3>
-                    {distance && <span className="market-distance ml-2 text-sm text-gray-500">({Math.round(distance * 0.621371)} miles)</span>}
                     
                     {/* Categories */}
                     {(market.categories ?? []).length > 0 && (
@@ -167,13 +169,6 @@ export function MarketList({
                     
                     {/* Address */}
                     <p className="text-gray-600 mt-1">{market.address}</p>
-                    
-                    {/* Distance */}
-                    {distance !== null && (
-                      <span className="text-xs text-gray-500">
-                        {Math.round(distance * 0.621371)} miles away
-                      </span>
-                    )}
                     
                     {/* Opening hours */}
                     {market.opening_hours && (

@@ -322,10 +322,14 @@ function App() {
       const dayOfWeek = format(filterDate, 'EEEE').toLowerCase();
       console.log('Filtering by day of week:', dayOfWeek);
       
-      // For Soon mode, just return all markets for now to debug the issue
-      console.log('Soon mode - day of week:', dayOfWeek);
-      console.log('Soon mode - returning all markets');
-      return markets;
+      // Filter markets by specific date in Soon mode
+      const filterDateStr = format(filterDate, 'yyyy-MM-dd');
+      return markets.filter(market =>
+        marketOpenings.some(opening =>
+          opening.marketId === market.market_id &&
+          opening.date === filterDateStr
+        )
+      );
     } else {
       // Week mode - filter by selected weekdays
       if (selectedWeekdays.length === 0) return [];
@@ -341,7 +345,7 @@ function App() {
         });
       });
     }
-  }, [markets, currentDateFilter, currentWhenMode, selectedWeekdays]);
+  }, [markets, currentWhenMode, currentDateFilter, selectedWeekdays, marketOpenings]);
   
   if (loading) return <div className="p-4">Loading markets...</div>
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>

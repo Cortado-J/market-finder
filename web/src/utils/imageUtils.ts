@@ -14,8 +14,8 @@ export function getMarketImageUrl(marketRef: string | null): string {
   // Clean up the market_ref by removing any extra spaces and replacing double hyphens
   const cleanRef = marketRef.trim().replace(/--/g, '-');
   
-  // The correct image path format is without the -main suffix
-  return `${supabaseUrl}/storage/v1/object/public/market-photos/main/${cleanRef}.png`;
+  // Use correct bucket 'markets-photos' and append '-main' suffix per filename pattern
+  return `${supabaseUrl}/storage/v1/object/public/market-photos/main/${cleanRef}-main.png`;
 }
 
 /**
