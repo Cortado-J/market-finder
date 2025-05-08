@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { format } from 'date-fns'
 import { Market } from '../types/Market'
 import { MarketOpening, getUpcomingMarketOpenings } from '../utils/getMarketOpenings'
-import { getCategoryIconUrl } from '../utils/imageUtils'
+import { getCategoryIconUrl, getMarketImageUrl } from '../utils/imageUtils'
+// Import location utilities
 import { calculateDistance, getCoordinates } from '../utils/locationUtils'
 
 interface MarketListProps {
@@ -75,6 +76,18 @@ export function MarketList({
   // Debug log to check if markets are being received and sorted correctly
   console.log('MarketList - received markets:', markets.length);
   console.log('MarketList - sorted markets:', sortedMarkets.length);
+  
+  // Debug useEffect to log market references and image URLs
+  useEffect(() => {
+    // Log the first few markets for debugging
+    const marketsToLog = markets.slice(0, 3);
+    marketsToLog.forEach(market => {
+      console.log('Market debugging info:');
+      console.log('- Name:', market.name);
+      console.log('- Market ref:', market.market_ref);
+      console.log('- Image URL:', getMarketImageUrl(market.market_ref || null));
+    });
+  }, [markets]);
 
   return (
     <div className="space-y-6 p-4 pb-20 font-sans"> 
@@ -100,9 +113,28 @@ export function MarketList({
                 onClick={() => onMarketSelect(market)}
               >
                 <div className="flex items-start">
-                  <div className="market-image-container w-16 h-16 mr-3 rounded-md overflow-hidden flex-shrink-0 bg-gray-200">
-                    {/* Use a colored background as placeholder instead of trying to load images */}
-                    <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-800 font-bold text-sm">
+                  <div className="market-image-container w-16 h-16 mr-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
+                    {market.market_ref ? (
+                      <img 
+                        src={getMarketImageUrl(market.market_ref)}
+                        alt={market.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Hide the image and show initials instead
+                          e.currentTarget.style.display = 'none';
+                          // Show the fallback div that's already in the DOM
+                          const fallbackEl = e.currentTarget.nextElementSibling;
+                          if (fallbackEl) {
+                            (fallbackEl as HTMLElement).style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    {/* Fallback to initials if no image or image fails to load */}
+                    <div 
+                      className="absolute inset-0 w-full h-full flex items-center justify-center text-blue-800 font-bold text-sm"
+                      style={{ display: market.market_ref ? 'none' : 'flex' }}
+                    >
                       {market.name.substring(0, 2).toUpperCase()}
                     </div>
                   </div>

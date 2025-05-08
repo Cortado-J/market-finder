@@ -56,9 +56,12 @@ function App() {
           console.log(`Market ${market.name} (ID: ${market.market_id}) raw market_ref:`, market.market_ref);
           
           if (market.market_ref) {
-            // Store the market_ref value
-            marketRefMap[market.market_id] = market.market_ref;
-            console.log(`Added to marketRefMap: ${market.market_id} => ${market.market_ref}`);
+            // Store the market_ref value and clean it up
+            const cleanRef = market.market_ref.trim().replace(/--/g, '-');
+            marketRefMap[market.market_id] = cleanRef;
+            console.log(`Added to marketRefMap: ${market.market_id} => ${cleanRef} (original: ${market.market_ref})`);
+            // Log the image URL that would be generated
+            console.log(`Image URL would be: ${getMarketImageUrl(cleanRef)}`);
           } else {
             console.log(`No market_ref for market: ${market.name}`);
           }

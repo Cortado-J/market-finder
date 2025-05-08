@@ -9,21 +9,13 @@ import { supabaseUrl } from './supabase';
  * @returns The full URL to the market image
  */
 export function getMarketImageUrl(marketRef: string | null): string {
-  // For now, let's use placeholder images while we debug the Supabase image loading
-  return '/market-placeholder.jpg';
-  
-  /* Commented out until we resolve the 400 errors
   if (!marketRef) return '/market-placeholder.jpg';
   
   // Clean up the market_ref by removing any extra spaces and replacing double hyphens
   const cleanRef = marketRef.trim().replace(/--/g, '-');
   
-  // Try both bucket names to see which one works
-  const imageUrl = `${supabaseUrl}/storage/v1/object/public/market-photos/main/${cleanRef}-main.png`;
-  
-  console.log('Market image URL:', imageUrl);
-  return imageUrl;
-  */
+  // The correct image path format is without the -main suffix
+  return `${supabaseUrl}/storage/v1/object/public/market-photos/main/${cleanRef}.png`;
 }
 
 /**
