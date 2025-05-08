@@ -68,23 +68,76 @@ body, html {
 
 /* Date button scrolling container - iOS compatible */
 .date-scroll-container {
-  overflow-x: auto;
-  white-space: nowrap;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: scroll;
   -webkit-overflow-scrolling: touch;
-  padding: 0 1rem 0.5rem 1rem;
+  padding: 0 0.5rem 0.5rem 0.5rem;
+  margin: 0 -0.5rem;
   width: 100%;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* Critical for iOS Safari */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
+  /* Prevent elastic scrolling */
+  overscroll-behavior-x: none;
 }
 
 .date-scroll-container::-webkit-scrollbar {
   display: none;
 }
 
-/* Make buttons display inline in the scrolling container */
-.date-scroll-container button {
-  display: inline-block;
-  margin-right: 0.5rem;
+/* Ensure the container doesn't get cut off on iOS */
+@supports (-webkit-touch-callout: none) {
+  .date-scroll-container {
+    padding-bottom: 1rem;
+  }
+}
+
+/* Vertical date button styling */
+.date-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.1rem;
+  margin-right: 0.3rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  font-size: 0.85rem;
+  min-width: 3.2rem;
+  height: 3.2rem;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.date-button:active {
+  transform: scale(0.97);
+}
+
+.date-button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #0056b3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.date-button .day-name {
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+  font-size: 0.8rem;
+}
+
+.date-button .day-number {
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 /* Market item styling */

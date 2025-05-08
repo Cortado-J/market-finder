@@ -426,18 +426,34 @@ function App() {
           
           {/* Soon Mode: Date filter controls - with horizontal scrolling for iOS */}
           {currentWhenMode === 'soon' && (
-            <div className="date-scroll-container">
+            <div 
+              style={{
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                width: '100%',
+                display: 'flex',
+                padding: '0 0 0.5rem 0'
+              }}
+            >
+              <div style={{
+                display: 'flex',
+                paddingLeft: '0rem',
+                paddingRight: '0rem',
+                minWidth: 'min-content'
+              }}>
                 <button 
                   onClick={() => setCurrentDateFilter('today')}
-                  className={`filter-button ${currentDateFilter === 'today' ? 'active' : ''}`}
+                  className={`date-button ${currentDateFilter === 'today' ? 'active' : ''}`}
                 >
-                  Today
+                  <span className="day-name">Today</span>
+                  <span className="day-number">{format(new Date(), 'd')}</span>
                 </button>
                 <button 
                   onClick={() => setCurrentDateFilter('tomorrow')}
-                  className={`filter-button ${currentDateFilter === 'tomorrow' ? 'active' : ''}`}
+                  className={`date-button ${currentDateFilter === 'tomorrow' ? 'active' : ''}`}
                 >
-                  Tomorrow
+                  <span className="day-name">{format(addDays(new Date(), 1), 'EEE')}</span>
+                  <span className="day-number">{format(addDays(new Date(), 1), 'd')}</span>
                 </button>
                 
                 {/* Next 5 days as individual buttons */}
@@ -452,19 +468,22 @@ function App() {
                     <button 
                       key={filterName}
                       onClick={() => setCurrentDateFilter(filterName as DateFilter)}
-                      className={`filter-button ${currentDateFilter === filterName ? 'active' : ''}`}
+                      className={`date-button ${currentDateFilter === filterName ? 'active' : ''}`}
                     >
-                      {dayName} {dayOfMonth}
+                      <span className="day-name">{dayName}</span>
+                      <span className="day-number">{dayOfMonth}</span>
                     </button>
                   );
                 })}
                 
                 <button 
                   onClick={() => setCurrentDateFilter('next-14-days')}
-                  className={`filter-button ${currentDateFilter === 'next-14-days' ? 'active' : ''}`}
+                  className={`date-button ${currentDateFilter === 'next-14-days' ? 'active' : ''}`}
                 >
-                  Next 14 Days
+                  <span className="day-name">Next</span>
+                  <span className="day-number">14d</span>
                 </button>
+              </div>
             </div>
           )}
           
@@ -483,7 +502,7 @@ function App() {
       {/* Content area with appropriate padding for the fixed header */}
       <div className="content" style={{ 
         paddingTop: viewMode !== 'detail' ? 
-          (currentWhenMode === 'soon' ? '95px' : '95px') : '0px'
+          (currentWhenMode === 'soon' ? '115px' : '115px') : '0px'
       }}>
         {/* Conditional rendering based on view mode */}
         {viewMode === 'map' ? (
