@@ -15,6 +15,8 @@ interface MarketListProps {
   userLocation: [number, number] // [longitude, latitude]
   // Two-letter code for selected day in Soon mode (e.g. 'Tu', 'Sa')
   selectedDayCode?: string
+  // Is the app in week mode
+  isWeekMode?: boolean
   // Debug mode for showing raw schedule data
   debugMode?: boolean
 }
@@ -25,6 +27,7 @@ export function MarketList({
   onMarketSelect,
   userLocation,
   selectedDayCode,
+  isWeekMode = false,
   debugMode = false
 }: MarketListProps) {
   const [openings, setOpenings] = useState<MarketOpening[]>([]);
@@ -148,36 +151,28 @@ export function MarketList({
                   </div>
                   
                   <div className="flex-grow">
-                    {/* Title and distance */}
+                    {/* Title only */}
                     <div className="flex justify-between items-start mb-0.5">
                       <h3 className="market-name text-lg font-semibold text-blue-900 break-words leading-normal">{market.name}</h3>
-                      {distance && <span className="market-distance text-sm text-gray-500">({Math.round(distance * 0.621371)} miles)</span>}
                     </div>
                     
-                    {/* Address */}
-                    {market.address && (
-                      <p className="text-sm text-gray-500 mb-1">{market.address}</p>
-                    )}
-                    
-                    {/* Open On (Soon mode) or Next Open (Week/All modes) */}
+                    {/* Open On (Soon mode) or Next Open (All modes) - hidden in Week mode */}
                     {selectedDayCode ? (
                       <p className="text-sm mt-1 text-gray-700">
                         <span className="font-bold">{humanizeOpeningForDay(market.opening_hours || '', selectedDayCode)}</span>
                       </p>
-                    ) : (
-                      nextOpening && (
-                        <p className="mt-1 inline-block">
-                          <span className="font-bold inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                            <OpenOn opening={nextOpening} className="" />
-                          </span>
-                        </p>
-                      )
+                    ) : !isWeekMode && nextOpening && (
+                      <p className="mt-1 inline-block">
+                        <span className="font-bold inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                          <OpenOn opening={nextOpening} className="font-bold" />
+                        </span>
+                      </p>
                     )}
                     
                     {/* Regular opening hours */}
                     {market.opening_hours && (
                       <p className="text-sm text-gray-500 mt-1">
-                        <span className="italic">Opening hours:</span> {humanizeOpeningHours(market.opening_hours)}
+                        <span>Opening hours:</span> {humanizeOpeningHours(market.opening_hours)}
                       </p>
                     )}
                     
@@ -185,6 +180,13 @@ export function MarketList({
                     {debugMode && market.opening_hours && (
                       <p className="text-xs mt-1 bg-yellow-100 text-yellow-800 p-1 rounded">
                         <code>Raw: {market.opening_hours}</code>
+                      </p>
+                    )}
+                    
+                    {/* Address and distance (moved to bottom) - combined into one text element */}
+                    {market.address && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        {market.address} {distance && `(${Math.round(distance * 0.621371)} miles)`}
                       </p>
                     )}
                     

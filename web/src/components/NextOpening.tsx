@@ -4,9 +4,10 @@ import { format, parseISO } from 'date-fns';
 interface OpenOnProps {
   opening: MarketOpening;
   className?: string;
+  weekMode?: boolean;
 }
 
-export function OpenOn({ opening, className = '' }: OpenOnProps) {
+export function OpenOn({ opening, className = '', weekMode = false }: OpenOnProps) {
   if (!opening || opening.error || !opening.date) return null;
   // Format date always from the ISO string
   const dateText = format(parseISO(opening.date), 'EEE, MMM d');
@@ -14,7 +15,7 @@ export function OpenOn({ opening, className = '' }: OpenOnProps) {
   if (opening.startTime && opening.endTime) {
     content += `, ${opening.startTime} to ${opening.endTime}`;
   }
-  return <p className={className}>Open on {content}</p>;
+  return <p className={`font-bold ${className}`}>{!weekMode ? 'Open on ' : ''}{content}</p>;
 }
 
 // Legacy component name for backwards compatibility

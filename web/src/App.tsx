@@ -516,30 +516,35 @@ function App() {
             {selectedMarket && (
               <div className="absolute bottom-4 left-4 right-4 market-item selected z-10">
                 <div>
-                  {/* Market name with distance */}
+                  {/* Market name only */}
                   <div className="flex items-center">
                     <h3 className="market-name">{selectedMarket.name}</h3>
-                    {(() => {
-                      const coords = getCoordinates(selectedMarket);
-                      if (!coords) return null;
-                      const distance = calculateDistance(defaultLocation, coords);
-                      const distanceText = `(${Math.round(distance * 0.621371)} miles)`;
-                      return <span className="market-distance">{distanceText}</span>;
-                    })()}
                   </div>
                   
-                  {/* Address */}
-                  <p className="mt-2">{selectedMarket.address}</p>
+                  {/* Next opening - hidden in Week mode */}
+                  {selectedMarketNextOpening && currentWhenMode !== 'week' && (
+                    <OpenOn 
+                      opening={selectedMarketNextOpening} 
+                      className="text-sm mt-1 text-green-600 font-bold" 
+                    />
+                  )}
                   
                   {/* Opening hours */}
                   {selectedMarket.opening_hours && (
-                    <p className="text-sm mt-1 opacity-90">Opening hours: {selectedMarket.opening_hours}</p>
+                    <p className="text-sm mt-1 opacity-90">
+                      <span>Opening hours:</span> {selectedMarket.opening_hours}
+                    </p>
                   )}
                   
-                  {/* Next opening */}
-                  {selectedMarketNextOpening && (
-                    <OpenOn opening={selectedMarketNextOpening} className="text-sm mt-1 text-green-600" />
-                  )}
+                  {/* Address with distance - combined into one text element */}
+                  <p className="mt-2">
+                    {selectedMarket.address} {(() => {
+                      const coords = getCoordinates(selectedMarket);
+                      if (!coords) return null;
+                      const distance = calculateDistance(defaultLocation, coords);
+                      return `(${Math.round(distance * 0.621371)} miles)`;
+                    })()}
+                  </p>
                   
                   {/* View details button */}
                   <button 
@@ -559,6 +564,7 @@ function App() {
             onMarketSelect={handleMarketSelect}
             userLocation={defaultLocation}
             selectedDayCode={selectedDayCode}
+            isWeekMode={currentWhenMode === 'week'}
             debugMode={debugMode}
           />
         ) : (

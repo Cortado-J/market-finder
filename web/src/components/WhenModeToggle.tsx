@@ -22,7 +22,7 @@ export function WhenModeToggle({
   };
 
   return (
-    <div className="flex space-x-3">
+    <div className="flex space-x-3 when-mode-toggle">
       <button
         className={`filter-button ${mode === 'soon' ? 'active' : ''}`}
         onClick={() => handleModeChange('soon')}
