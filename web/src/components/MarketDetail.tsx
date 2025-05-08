@@ -1,9 +1,9 @@
 import { Market } from '../types/Market';
-import { format, parseISO } from 'date-fns';
 import { MarketOpening } from '../utils/getMarketOpenings';
 import { getMarketImageUrl, getCategoryIconUrl } from '../utils/imageUtils';
 import { humanizeOpeningHours } from '../utils/scheduleUtils';
-import { useEffect, useState } from 'react';
+// No React hooks needed anymore
+import { OpenOn } from './NextOpening';
 
 interface MarketDetailProps {
   market: Market;
@@ -12,21 +12,7 @@ interface MarketDetailProps {
 }
 
 export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetailProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Check if we're on mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, []);
+  // Mobile detection removed - we're now handling responsiveness through CSS
 
   // Generate image URL
   const imageUrl = getMarketImageUrl(market.market_ref || null);
@@ -56,13 +42,11 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
       {/* Schedule & opening times */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-[1px]">Opening Times</h2>
-        {marketNextOpening && !marketNextOpening.error ? (
-          <p className="mb-1">
-            Next open: {format(parseISO(marketNextOpening.date!), 'EEE d MMM')}, {marketNextOpening.startTime}-{marketNextOpening.endTime}
-          </p>
-        ) : null}
+        {marketNextOpening && (
+          <OpenOn opening={marketNextOpening} className="mb-1" />
+        )}
         {market.opening_hours ? (
-          <p className="text-sm opacity-90">Regular hours: {humanizeOpeningHours(market.opening_hours)}</p>
+          <p className="text-sm opacity-90">Opening hours: {humanizeOpeningHours(market.opening_hours)}</p>
         ) : (
           <p className="text-sm opacity-90">No regular schedule available</p>
         )}

@@ -10,7 +10,7 @@ const dayMap: Record<string, string> = {
 };
 
 function ordinalText(n: number): string {
-  const ordinals = ['first', 'second', 'third', 'fourth', 'fifth'];
+  const ordinals = ['First', 'Second', 'Third', 'Fourth', 'Fifth'];
   return ordinals[n - 1] || `${n}th`;
 }
 
@@ -67,4 +67,80 @@ function humanizeDays(dp: string): string {
     return `${startDay} to ${endDay}`;
   }
   return dayMap[dp] || dp;
+}
+
+/**
+ * Returns human-readable opening times for a specific day and notes other open days.
+ * Handles both two-letter codes and common abbreviations.
+ */
+export function humanizeOpeningForDay(schedule: string, targetCode: string): string {
+  if (!schedule || !targetCode) return '';
+  // Normalize targetCode to two-letter code
+  let target = targetCode;
+  if (!dayMap[target]) {
+    const foundTarget = (Object.entries(dayMap) as [string,string][]).find(([,v]) => v === targetCode);
+    if (foundTarget) target = foundTarget[0];
+  }
+  // Group days by identical time intervals
+  const timeGroups: Record<string, string[]> = {};
+  const segments = schedule.split(';').map(s => s.trim());
+  const timePattern = /\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})*/;
+  for (const segment of segments) {
+    const match = segment.match(timePattern);
+    if (!match) continue;
+    const times = match[0];
+    const daysPart = segment.replace(times, '').trim();
+    // Normalize day tokens to codes and expand day ranges
+    const dayTokens = daysPart.split(',').map(d => d.trim());
+    const expandedCodes: string[] = [];
+    
+    // Process each token in day part
+    for (const token of dayTokens) {
+      // Handle day ranges (Mo-Sa)
+      if (token.includes('-')) {
+        const [startDay, endDay] = token.split('-');
+        // Get all days in order Mo, Tu, We, Th, Fr, Sa, Su
+        const allDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+        const startIndex = allDays.indexOf(startDay);
+        const endIndex = allDays.indexOf(endDay);
+        
+        if (startIndex >= 0 && endIndex >= 0) {
+          // Include all days in the range, inclusive
+          for (let i = startIndex; i <= endIndex; i++) {
+            expandedCodes.push(allDays[i]);
+          }
+        } else {
+          // Just add the original token if we couldn't understand the range
+          expandedCodes.push(token);
+        }
+      } else {
+        // Single day - normalize to code if it's a full name
+        if (dayMap[token]) {
+          expandedCodes.push(token);
+        } else {
+          const found = (Object.entries(dayMap) as [string,string][]).find(([,v]) => v === token);
+          if (found) expandedCodes.push(found[0]);
+          else expandedCodes.push(token);
+        }
+      }
+    }
+    
+    // Add to time groups
+    if (!timeGroups[times]) timeGroups[times] = [];
+    for (const code of expandedCodes) {
+      if (!timeGroups[times].includes(code)) timeGroups[times].push(code);
+    }
+  }
+  // Find the group matching the selected day code
+  for (const times in timeGroups) {
+    const codes = timeGroups[times];
+    if (!codes.includes(target)) continue;
+    const dayName = dayMap[target] || target;
+    const timesText = times.split(',')
+      .map(t => t.replace('-', ' to ').replace(/\b0(\d:)/g, '$1'))
+      .join(', ');
+    // Add "Open on" prefix for consistent UI
+    return `Open on ${dayName} ${timesText}`;
+  }
+  return '';
 }

@@ -10,6 +10,7 @@ import { WhenMode, WhenModeToggle } from './components/WhenModeToggle'
 import { Weekday, WeekdaySelector } from './components/WeekdaySelector'
 import { format, addDays } from 'date-fns'
 import { calculateDistance, getCoordinates } from './utils/locationUtils'
+import { OpenOn } from './components/NextOpening'
 import './App.css'
 
 // Date filter type (must match the one in MarketList)
@@ -31,6 +32,8 @@ function App() {
   // State for preserving filter selections
   const [currentDateFilter, setCurrentDateFilter] = useState<DateFilter>('today');
   const [currentWhenMode, setCurrentWhenMode] = useState<WhenMode>('soon');
+  // Debug mode for showing raw schedule data
+  const [debugMode, setDebugMode] = useState<boolean>(false);
   const [selectedWeekdays, setSelectedWeekdays] = useState<Weekday[]>(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
 
   useEffect(() => {
@@ -360,6 +363,22 @@ function App() {
     }
   }, [markets, currentWhenMode, currentDateFilter, selectedWeekdays, marketOpenings]);
   
+  // Determine two-letter day code for Soon mode
+  const selectedDayCode = useMemo(() => {
+    if (currentWhenMode !== 'soon') return undefined;
+    let date: Date = new Date();
+    if (currentDateFilter === 'today') {
+      // use today
+    } else if (currentDateFilter === 'tomorrow') {
+      date = addDays(date, 1);
+    } else if (currentDateFilter.startsWith('day-')) {
+      const n = parseInt(currentDateFilter.split('-')[1] || '0', 10);
+      date = addDays(date, n - 1);
+    }
+    // 'EE' gives two-letter day code (e.g. 'Mo', 'Tu')
+    return format(date, 'EE');
+  }, [currentWhenMode, currentDateFilter]);
+
   if (loading) return <div className="p-4">Loading markets...</div>
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>
 
@@ -368,6 +387,16 @@ function App() {
       {/* Fixed header with navigation controls */}
       {viewMode !== 'detail' && (
         <div className="fixed top-0 left-0 right-0 z-10 bg-white p-4 shadow-md">
+          {/* Debug mode toggle - small and discrete in the top right */}
+          <div className="flex justify-end mb-1">
+            <button 
+              onClick={() => setDebugMode(prev => !prev)}
+              className={`text-xs px-2 py-1 rounded ${debugMode ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-600'}`}
+            >
+              {debugMode ? '🐞 Debug On' : '🐞 Debug'}
+            </button>
+          </div>
+
           {/* Top row: Soon/Week and List/Map toggles */}
           <div className="flex justify-between items-center button-row-gap" style={{marginBottom: '40px'}}>
             {/* Soon/Week Toggle */}
@@ -487,14 +516,12 @@ function App() {
                   
                   {/* Opening hours */}
                   {selectedMarket.opening_hours && (
-                    <p className="text-sm mt-1 opacity-90">Regular hours: {selectedMarket.opening_hours}</p>
+                    <p className="text-sm mt-1 opacity-90">Opening hours: {selectedMarket.opening_hours}</p>
                   )}
                   
                   {/* Next opening */}
-                  {selectedMarketNextOpening && selectedMarketNextOpening.date && (
-                    <p className="text-sm mt-1 text-green-600">
-                      Next open: {format(new Date(selectedMarketNextOpening.date), 'EEE, MMM d')}
-                    </p>
+                  {selectedMarketNextOpening && (
+                    <OpenOn opening={selectedMarketNextOpening} className="text-sm mt-1 text-green-600" />
                   )}
                   
                   {/* View details button */}
@@ -514,6 +541,8 @@ function App() {
             selectedMarket={selectedMarket}
             onMarketSelect={handleMarketSelect}
             userLocation={defaultLocation}
+            selectedDayCode={selectedDayCode}
+            debugMode={debugMode}
           />
         ) : (
           <MarketDetail 

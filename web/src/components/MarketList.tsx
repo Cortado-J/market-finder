@@ -3,22 +3,29 @@ import { format } from 'date-fns'
 import { Market } from '../types/Market'
 import { MarketOpening, getUpcomingMarketOpenings } from '../utils/getMarketOpenings'
 import { getCategoryIconUrl, getMarketImageUrl } from '../utils/imageUtils'
-import { humanizeOpeningHours } from '../utils/scheduleUtils';
+import { humanizeOpeningHours, humanizeOpeningForDay } from '../utils/scheduleUtils';
 // Import location utilities
 import { calculateDistance, getCoordinates } from '../utils/locationUtils'
+import { OpenOn } from './NextOpening';
 
 interface MarketListProps {
   markets: Market[]
   selectedMarket: Market | null
   onMarketSelect: (market: Market) => void
   userLocation: [number, number] // [longitude, latitude]
+  // Two-letter code for selected day in Soon mode (e.g. 'Tu', 'Sa')
+  selectedDayCode?: string
+  // Debug mode for showing raw schedule data
+  debugMode?: boolean
 }
 
 export function MarketList({
   markets,
   selectedMarket,
   onMarketSelect,
-  userLocation
+  userLocation,
+  selectedDayCode,
+  debugMode = false
 }: MarketListProps) {
   const [openings, setOpenings] = useState<MarketOpening[]>([]);
 
@@ -141,14 +148,44 @@ export function MarketList({
                   </div>
                   
                   <div className="flex-grow">
+                    {/* Title and distance */}
                     <div className="flex justify-between items-start mb-0.5">
                       <h3 className="market-name text-lg font-semibold text-blue-900 break-words leading-normal">{market.name}</h3>
                       {distance && <span className="market-distance text-sm text-gray-500">({Math.round(distance * 0.621371)} miles)</span>}
                     </div>
-                    {nextOpening && !nextOpening.error && nextOpening.formattedDate && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Next open: {nextOpening.formattedDate}
-                      </span>
+                    
+                    {/* Address */}
+                    {market.address && (
+                      <p className="text-sm text-gray-500 mb-1">{market.address}</p>
+                    )}
+                    
+                    {/* Open On (Soon mode) or Next Open (Week/All modes) */}
+                    {selectedDayCode ? (
+                      <p className="text-sm mt-1 text-gray-700">
+                        <span className="font-bold">{humanizeOpeningForDay(market.opening_hours || '', selectedDayCode)}</span>
+                      </p>
+                    ) : (
+                      nextOpening && (
+                        <p className="mt-1 inline-block">
+                          <span className="font-bold inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            <OpenOn opening={nextOpening} className="" />
+                          </span>
+                        </p>
+                      )
+                    )}
+                    
+                    {/* Regular opening hours */}
+                    {market.opening_hours && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        <span className="italic">Opening hours:</span> {humanizeOpeningHours(market.opening_hours)}
+                      </p>
+                    )}
+                    
+                    {/* Debug mode: Show raw schedule */}
+                    {debugMode && market.opening_hours && (
+                      <p className="text-xs mt-1 bg-yellow-100 text-yellow-800 p-1 rounded">
+                        <code>Raw: {market.opening_hours}</code>
+                      </p>
                     )}
                     
                     {/* Categories */}
@@ -166,14 +203,6 @@ export function MarketList({
                           />
                         ))}
                       </div>
-                    )}
-                    
-                    {/* Address */}
-                    <p className="text-gray-600 mt-1">{market.address}</p>
-                    
-                    {/* Opening hours */}
-                    {market.opening_hours && (
-                      <p className="text-sm mt-1 text-gray-500">{humanizeOpeningHours(market.opening_hours)}</p>
                     )}
                   </div>
                 </div>
