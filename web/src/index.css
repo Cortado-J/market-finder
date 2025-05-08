@@ -84,10 +84,10 @@ body, html {
 }
 
 .market-name {
+  margin: 0 0.75rem 0 0; /* Remove default h3 margins, keep right spacing */
   font-size: 1.1rem; /* Smaller font */
   font-weight: 600;
-  margin-right: 0.75rem; /* Reduced margin */
-  line-height: 0;
+  line-height: 1.25; /* Allow proper spacing when title wraps */
 }
 
 .market-distance {

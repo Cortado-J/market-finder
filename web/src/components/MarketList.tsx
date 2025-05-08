@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { Market } from '../types/Market'
 import { MarketOpening, getUpcomingMarketOpenings } from '../utils/getMarketOpenings'
 import { getCategoryIconUrl, getMarketImageUrl } from '../utils/imageUtils'
+import { humanizeOpeningHours } from '../utils/scheduleUtils';
 // Import location utilities
 import { calculateDistance, getCoordinates } from '../utils/locationUtils'
 
@@ -140,8 +141,8 @@ export function MarketList({
                   </div>
                   
                   <div className="flex-grow">
-                    <div className="flex justify-between items-center mb-1">
-                      <h3 className="market-name text-lg font-semibold text-blue-900 break-words">{market.name}</h3>
+                    <div className="flex justify-between items-start mb-0.5">
+                      <h3 className="market-name text-lg font-semibold text-blue-900 break-words leading-normal">{market.name}</h3>
                       {distance && <span className="market-distance text-sm text-gray-500">({Math.round(distance * 0.621371)} miles)</span>}
                     </div>
                     {nextOpening && !nextOpening.error && nextOpening.formattedDate && (
@@ -172,7 +173,7 @@ export function MarketList({
                     
                     {/* Opening hours */}
                     {market.opening_hours && (
-                      <p className="text-sm mt-1 text-gray-500">{market.opening_hours}</p>
+                      <p className="text-sm mt-1 text-gray-500">{humanizeOpeningHours(market.opening_hours)}</p>
                     )}
                   </div>
                 </div>

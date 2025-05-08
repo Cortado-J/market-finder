@@ -2,6 +2,7 @@ import { Market } from '../types/Market';
 import { format, parseISO } from 'date-fns';
 import { MarketOpening } from '../utils/getMarketOpenings';
 import { getMarketImageUrl, getCategoryIconUrl } from '../utils/imageUtils';
+import { humanizeOpeningHours } from '../utils/scheduleUtils';
 import { useEffect, useState } from 'react';
 
 interface MarketDetailProps {
@@ -61,7 +62,7 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
           </p>
         ) : null}
         {market.opening_hours ? (
-          <p className="text-sm opacity-90">Regular hours: {market.opening_hours}</p>
+          <p className="text-sm opacity-90">Regular hours: {humanizeOpeningHours(market.opening_hours)}</p>
         ) : (
           <p className="text-sm opacity-90">No regular schedule available</p>
         )}
