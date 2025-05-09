@@ -115,157 +115,161 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
   );
 
   return (
-    <div className="market-detail py-3 max-w-2xl mx-auto bg-white min-h-screen" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-      {/* Back button */}
-      <button 
-        onClick={onBack}
-        className="mb-2 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-      >
-        ← Back to list
-      </button>
-      
-      {/* Market name and image */}
-      <div className="rounded-lg shadow-sm bg-blue-50 p-2 mb-1">
-        <h1 className="text-xl font-bold text-blue-900 text-center mb-1">{market.name}</h1>
-        
-        {/* Image inside the market name box */}
-        {imageUrl && (
-          <div className="rounded-lg overflow-hidden">
-            <img
-              src={imageUrl}
-              alt={`${market.name}`}
-              className="w-full h-auto object-cover"
-              onError={(e) => {
-                // Hide the image on error
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          </div>
-        )}
+    // Main container for MarketDetail - flex column to allow fixed header and scrollable content
+    <div className="market-detail flex flex-col h-full max-w-2xl mx-auto bg-white" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+      {/* Fixed Header Area */}
+      <div className="pt-3 pb-2 border-b border-gray-200 bg-white">
+        {/* Back button */}
+        <button 
+          onClick={onBack}
+          className="mb-2 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          ← Back to list
+        </button>
+        {/* Market name - moved to header, font size reduced */}
+        <h2 className="text-lg font-bold text-blue-900 text-center">{market.name}</h2>
       </div>
-      
-      {/* WHERE section */}
-      <SectionCard title="WHERE" icon="🧭">
-        {(addressWithoutPostcode || postcode) && (
-          <div>
-            <h3 className="text-sm font-bold">Address</h3>
-            {addressWithoutPostcode && <p className="text-sm text-gray-700 leading-none">{addressWithoutPostcode}</p>}
-            {postcode && <p className="text-sm text-blue-800 leading-none">{postcode}</p>}
+
+      {/* Scrollable Content Area */}
+      <div className="flex-grow overflow-y-auto py-1">
+        {/* Market image - now part of scrollable content */}
+        {imageUrl && (
+          <div className="rounded-lg shadow-sm bg-blue-50 p-2 mb-1"> 
+            <div className="rounded-lg overflow-hidden">
+              <img
+                src={imageUrl}
+                alt={`${market.name}`}
+                className="w-full h-auto object-cover"
+                onError={(e) => {
+                  // Hide the image on error
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
           </div>
         )}
         
-        {(directionsUrls.google || directionsUrls.apple) && (
-          <div className="mt-0.5">
-            <h3 className="text-sm font-bold">Directions</h3>
-            <div className="flex gap-2">
-              {directionsUrls.google && (
-                <button 
-                  onClick={() => {
-                    if (directionsUrls.google) {
-                      window.open(directionsUrls.google, '_blank');
-                    }
-                  }}
-                  className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-center flex-1"
-                  style={{ border: 'none', cursor: 'pointer' }}
-                >
-                  Google Maps
-                </button>
-              )}
-              {directionsUrls.apple && (
-                <button 
-                  onClick={() => {
+        {/* WHERE section */}
+        <SectionCard title="WHERE" icon="🧭">
+          {(addressWithoutPostcode || postcode) && (
+            <div>
+              <h3 className="text-sm font-bold">Address</h3>
+              {addressWithoutPostcode && <p className="text-sm text-gray-700 leading-none">{addressWithoutPostcode}</p>}
+              {postcode && <p className="text-sm text-blue-800 leading-none">{postcode}</p>}
+            </div>
+          )}
+          
+          {(directionsUrls.google || directionsUrls.apple) && (
+            <div className="mt-0.5">
+              <h3 className="text-sm font-bold">Directions</h3>
+              <div className="flex gap-2">
+                {directionsUrls.google && (
+                  <button 
+                    onClick={() => {
+                      if (directionsUrls.google) {
+                        window.open(directionsUrls.google, '_blank');
+                      }
+                    }}
+                    className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-center flex-1"
+                    style={{ border: 'none', cursor: 'pointer' }}
+                  >
+                    Google Maps
+                  </button>
+                )}
+                {directionsUrls.apple && (
+                  <button 
+                    onClick={() => {
                     if (directionsUrls.apple) {
                       window.open(directionsUrls.apple, '_blank');
                     }
                   }}
-                  className="bg-gray-600 text-white px-3 py-1.5 rounded-md hover:bg-gray-700 transition-colors text-center flex-1"
-                  style={{ border: 'none', cursor: 'pointer' }}
-                >
-                  Apple Maps
-                </button>
-              )}
+                    className="bg-gray-600 text-white px-3 py-1.5 rounded-md hover:bg-gray-700 transition-colors text-center flex-1"
+                    style={{ border: 'none', cursor: 'pointer' }}
+                  >
+                    Apple Maps
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </SectionCard>
-      
-      {/* WHEN section */}
-      <SectionCard title="WHEN" icon="🕒">
-        {market.opening_hours && (
-          <div>
-            <h3 className="text-sm font-bold">Opening Hours</h3>
-            <p className="text-sm text-gray-700 leading-none">{humanizeOpeningHours(market.opening_hours)}</p>
-          </div>
-        )}
-        
-        <div className="mt-0.5">
-          <h3 className="text-sm font-bold">Next Dates</h3>
-          {nextThreeOpenings.length > 0 ? (
-            <div className="space-y-1">
-              {nextThreeOpenings.map((opening, index) => (
-                <div key={index} className="rounded-md leading-none py-0.5 px-1 text-sm text-gray-700" 
-                     style={{ backgroundColor: '#edf5ff' }}>
-                  {opening.startTime && opening.endTime ? (
-                    <span>{format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}</span>
-                  ) : (
-                    <span>{format(parseISO(opening.date!), 'EEEE, MMMM d')}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500 italic">No upcoming dates available</p>
           )}
-        </div>
-      </SectionCard>
-      
-      {/* WHAT section */}
-      <SectionCard title="WHAT" icon="🏪">
-        {/* Website URL */}
-        {market.website_url && (
-          <div>
-            <h3 className="text-sm font-bold">Website</h3>
-            <a 
-              href={market.website_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline break-words leading-tight block text-sm"
-            >
-              {market.website_url}
-            </a>
-          </div>
-        )}
+        </SectionCard>
         
-        {/* Description */}
-        {market.description && (
-          <div>
-            <h3 className="text-sm font-bold">Description</h3>
-            <p className="text-sm text-gray-700 leading-none">{market.description}</p>
-          </div>
-        )}
-        
-        {/* Image moved to top section */}
-        
-        {/* Categories */}
-        {market.categories && market.categories.length > 0 && (
+        {/* WHEN section */}
+        <SectionCard title="WHEN" icon="🕒">
+          {market.opening_hours && (
+            <div>
+              <h3 className="text-sm font-bold">Opening Hours</h3>
+              <p className="text-sm text-gray-700 leading-none">{humanizeOpeningHours(market.opening_hours)}</p>
+            </div>
+          )}
+          
           <div className="mt-0.5">
-            <h3 className="text-sm font-bold">Categories</h3>
-            <ul className="list-none p-0 m-0 space-y-0">
-              {market.categories.map(cat => (
-                <li key={cat} className="flex items-center text-sm text-gray-700 leading-snug">
-                  <img
-                    src={getCategoryIconUrl(cat)}
-                    alt=""
-                    className="w-[16px] h-[16px] mr-1"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                  <span>{capitalizeWords(cat)}</span>
-                </li>
-              ))}
-            </ul>
+            <h3 className="text-sm font-bold">Next Dates</h3>
+            {nextThreeOpenings.length > 0 ? (
+              <div className="space-y-1">
+                {nextThreeOpenings.map((opening, index) => (
+                  <div key={index} className="rounded-md leading-none py-0.5 px-1 text-sm text-gray-700" 
+                       style={{ backgroundColor: '#edf5ff' }}>
+                    {opening.startTime && opening.endTime ? (
+                      <span>{format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}</span>
+                    ) : (
+                      <span>{format(parseISO(opening.date!), 'EEEE, MMMM d')}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 italic">No upcoming dates available</p>
+            )}
           </div>
-        )}
-      </SectionCard>
+        </SectionCard>
+        
+        {/* WHAT section */}
+        <SectionCard title="WHAT" icon="🏪">
+          {/* Website URL */}
+          {market.website_url && (
+            <div>
+              <h3 className="text-sm font-bold">Website</h3>
+              <a 
+                href={market.website_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline break-words leading-tight block text-sm"
+              >
+                {market.website_url}
+              </a>
+            </div>
+          )}
+          
+          {/* Description */}
+          {market.description && (
+            <div>
+              <h3 className="text-sm font-bold">Description</h3>
+              <p className="text-sm text-gray-700 leading-none">{market.description}</p>
+            </div>
+          )}
+          
+          {/* Categories */}
+          {market.categories && market.categories.length > 0 && (
+            <div className="mt-0.5">
+              <h3 className="text-sm font-bold">Categories</h3>
+              <ul className="list-none p-0 m-0 space-y-0">
+                {market.categories.map(cat => (
+                  <li key={cat} className="flex items-center text-sm text-gray-700 leading-snug">
+                    <img
+                      src={getCategoryIconUrl(cat)}
+                      alt=""
+                      className="w-[16px] h-[16px] mr-1"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                    <span>{capitalizeWords(cat)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </SectionCard>
+      </div>
     </div>
   );
 }
