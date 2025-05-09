@@ -11,11 +11,7 @@ interface DateSelectorProps {
 
 export function DateSelector({ currentDateFilter, onDateFilterChange }: DateSelectorProps) {
   return (
-    <div className="date-controls-container px-4 pt-0 mt-1">
-      {/* Mobile scroll indicator */}
-      <div style={{ textAlign: 'right', fontSize: '12px', color: '#888', marginBottom: '4px' }}>
-        Swipe for more dates →
-      </div>
+    <div className="date-controls-container px-4">
       
       {/* Horizontal scrolling container */}
       <div 
@@ -26,7 +22,7 @@ export function DateSelector({ currentDateFilter, onDateFilterChange }: DateSele
           overflowX: 'auto',
           WebkitOverflowScrolling: 'touch',
           scrollSnapType: 'x mandatory',
-          paddingBottom: '8px',
+          paddingBottom: '4px',
           width: '100%',
           msOverflowStyle: 'none', /* Hide scrollbar in IE and Edge */
           scrollbarWidth: 'none', /* Hide scrollbar in Firefox */
@@ -42,7 +38,7 @@ export function DateSelector({ currentDateFilter, onDateFilterChange }: DateSele
             flex: '0 0 auto',
             margin: '0 4px',
             padding: '8px 4px',
-            height: '60px',
+            height: '45px',
             width: '65px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             borderRadius: '8px',
@@ -62,7 +58,7 @@ export function DateSelector({ currentDateFilter, onDateFilterChange }: DateSele
             flex: '0 0 auto',
             margin: '0 4px',
             padding: '8px 4px',
-            height: '60px',
+            height: '45px',
             width: '65px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             borderRadius: '8px',
@@ -91,7 +87,7 @@ export function DateSelector({ currentDateFilter, onDateFilterChange }: DateSele
                 flex: '0 0 auto',
                 margin: '0 4px',
                 padding: '8px 4px',
-                height: '60px',
+                height: '45px',
                 width: '65px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 borderRadius: '8px',
@@ -113,7 +109,7 @@ export function DateSelector({ currentDateFilter, onDateFilterChange }: DateSele
             flex: '0 0 auto',
             margin: '0 4px',
             padding: '8px 4px',
-            height: '60px',
+            height: '45px',
             width: '65px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             borderRadius: '8px',

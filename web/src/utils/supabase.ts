@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Export the URL for use in image utility functions
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -11,7 +11,7 @@ console.log('Supabase URL available:', !!supabaseUrl);
 console.log('Supabase Key available:', !!supabaseKey);
 
 // Create a single instance of the Supabase client to be used throughout the app
-let supabase;
+let supabase: SupabaseClient;
 
 try {
   if (!supabaseUrl || !supabaseKey) {
@@ -21,8 +21,9 @@ try {
   console.log('Supabase client initialized successfully');
 } catch (error) {
   console.error('Failed to initialize Supabase client:', error);
-  // Provide a fallback client to prevent the app from crashing
-  supabase = { from: () => ({ select: () => ({ data: null, error: null }) }) } as any;
+  // Provide a fallback or rethrow, depending on desired error handling
+  // For now, let's rethrow to make it clear initialization failed.
+  throw error;
 }
 
 export { supabase };

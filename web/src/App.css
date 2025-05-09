@@ -6,7 +6,7 @@
 .app {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  /* padding: 20px; */ /* Temporarily remove to simplify layout debugging */
 }
 
 .content {
@@ -17,7 +17,7 @@
 
 .map-container {
   width: 100%;
-  height: 400px;
+  /* height: 400px; */ /* Remove fixed height, should be controlled by flex and inline styles */
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);

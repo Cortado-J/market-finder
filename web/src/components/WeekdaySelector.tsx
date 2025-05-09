@@ -57,7 +57,7 @@ export function WeekdaySelector({ selectedDays = [], onChange }: WeekdaySelector
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 py-1">
       {/* All button */}
       <button
         onClick={toggleAll}

@@ -1,6 +1,9 @@
 import { MarketOpening } from '../utils/getMarketOpenings';
 import { format, parseISO } from 'date-fns';
 
+// Re-export the type for use in other components
+export type { MarketOpening };
+
 interface OpenOnProps {
   opening: MarketOpening;
   className?: string;

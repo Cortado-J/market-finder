@@ -19,6 +19,7 @@ interface MarketListProps {
   isWeekMode?: boolean
   // Debug mode for showing raw schedule data
   debugMode?: boolean
+  style?: React.CSSProperties
 }
 
 export function MarketList({
@@ -28,7 +29,8 @@ export function MarketList({
   userLocation,
   selectedDayCode,
   isWeekMode = false,
-  debugMode = false
+  debugMode = false,
+  style
 }: MarketListProps) {
   const [openings, setOpenings] = useState<MarketOpening[]>([]);
 
@@ -101,7 +103,7 @@ export function MarketList({
   }, [markets]);
 
   return (
-    <div className="space-y-6 p-4 pb-20 font-sans"> 
+    <div className="space-y-6 p-4 pb-20 font-sans" style={style}> 
       {/* Navigation controls moved to App.tsx */}
       
       {/* Market list - styled with light blue boxes */}
