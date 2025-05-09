@@ -27,7 +27,7 @@
 - [ ] Implement share functionality for market details
 
 ### Rendering across devices
-- [ ] Ask Dave re which phone
+- [ ] Dave's phone is  Galaxy S9 - so use Responsively to work for that.
 - [ ] Research how to make apps work across many devices
 
 ### Testing

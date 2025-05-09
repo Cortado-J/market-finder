@@ -384,196 +384,269 @@ function App() {
 
   return (
     <div className="app">
-      {/* Fixed header with navigation controls */}
-      {viewMode !== 'detail' && (
-        <div className="fixed top-0 left-0 right-0 z-10 bg-white p-4 shadow-md">
-          {/* Debug mode toggle - small and discrete in the top right */}
-          <div className="flex justify-end mb-1">
-            <button 
-              onClick={() => setDebugMode(prev => !prev)}
-              className={`text-xs px-2 py-1 rounded ${debugMode ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-600'}`}
-            >
-              {debugMode ? '🐞 Debug On' : '🐞 Debug'}
-            </button>
-          </div>
-
-          {/* Top row: Soon/Week and List/Map toggles */}
-          <div className="flex justify-between items-center button-row-gap" style={{marginBottom: '40px'}}>
-            {/* Soon/Week Toggle */}
-            <WhenModeToggle
-              initialMode={currentWhenMode}
-              onModeChange={setCurrentWhenMode}
-            />
-            
-            {/* List/Map Toggle */}
-            <div className="flex space-x-3">
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`filter-button ${viewMode === 'list' ? 'active' : ''}`}
-              >
-                List
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('map')}
-                className={`filter-button ${viewMode === 'map' ? 'active' : ''}`}
-              >
-                Map
-              </button>
-            </div>
-          </div>
-          
-          {/* Soon Mode: Date filter controls - with horizontal scrolling for iOS */}
-          {currentWhenMode === 'soon' && (
-            <div 
-              style={{
-                overflowX: 'auto',
-                WebkitOverflowScrolling: 'touch',
-                width: '100%',
-                display: 'flex',
-                padding: '0 0 0.5rem 0'
-              }}
-            >
-              <div style={{
-                display: 'flex',
-                paddingLeft: '0rem',
-                paddingRight: '0rem',
-                minWidth: 'min-content'
-              }}>
+      {viewMode === 'detail' ? (
+        // Detail view - full screen for market details
+        <MarketDetail 
+          market={selectedMarket!} 
+          onBack={handleBackToList} 
+        />
+      ) : (
+        // Main app view with header, filters and market list/map
+        <div className="flex flex-col min-h-screen">
+          {/* SECTION 1: Fixed header with mode toggles */}
+          <header className="fixed top-0 left-0 right-0 z-30 bg-white shadow-md">
+            <div className="p-4">
+              {/* Debug toggle */}
+              <div className="flex justify-end mb-1">
                 <button 
-                  onClick={() => setCurrentDateFilter('today')}
-                  className={`date-button ${currentDateFilter === 'today' ? 'active' : ''}`}
+                  onClick={() => setDebugMode(prev => !prev)}
+                  className="text-xs px-2 py-1 bg-gray-200 rounded"
                 >
-                  <span className="day-name">Today</span>
-                  <span className="day-number">{format(new Date(), 'd')}</span>
-                </button>
-                <button 
-                  onClick={() => setCurrentDateFilter('tomorrow')}
-                  className={`date-button ${currentDateFilter === 'tomorrow' ? 'active' : ''}`}
-                >
-                  <span className="day-name">{format(addDays(new Date(), 1), 'EEE')}</span>
-                  <span className="day-number">{format(addDays(new Date(), 1), 'd')}</span>
-                </button>
-                
-                {/* Next 5 days as individual buttons */}
-                {Array.from({ length: 5 }).map((_, index) => {
-                  const dayNum = index + 3; // day-3, day-4, etc.
-                  const date = addDays(new Date(), index + 2); // +2 because we start from day after tomorrow
-                  const dayName = format(date, 'EEE');
-                  const dayOfMonth = date.getDate();
-                  const filterName = `day-${dayNum}`;
-                  
-                  return (
-                    <button 
-                      key={filterName}
-                      onClick={() => setCurrentDateFilter(filterName as DateFilter)}
-                      className={`date-button ${currentDateFilter === filterName ? 'active' : ''}`}
-                    >
-                      <span className="day-name">{dayName}</span>
-                      <span className="day-number">{dayOfMonth}</span>
-                    </button>
-                  );
-                })}
-                
-                <button 
-                  onClick={() => setCurrentDateFilter('next-14-days')}
-                  className={`date-button ${currentDateFilter === 'next-14-days' ? 'active' : ''}`}
-                >
-                  <span className="day-name">Next</span>
-                  <span className="day-number">14d</span>
+                  {debugMode ? 'Debug Mode On' : 'Debug Mode'}
                 </button>
               </div>
-            </div>
-          )}
-          
-          {/* Week Mode: Weekday selector */}
-          {currentWhenMode === 'week' && (
-            <div className="pb-4">
-              <WeekdaySelector 
-                selectedDays={selectedWeekdays}
-                onChange={setSelectedWeekdays}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Content area with appropriate padding for the fixed header */}
-      <div className="content" style={{ 
-        paddingTop: viewMode !== 'detail' ? 
-          (currentWhenMode === 'soon' ? '115px' : '115px') : '0px'
-      }}>
-        {/* Conditional rendering based on view mode */}
-        {viewMode === 'map' ? (
-          <div className="map-container relative" style={{ height: 'calc(100vh - 160px)' }}>
-            <Map
-              markets={filteredMarkets}
-              selectedMarket={selectedMarket}
-              userLocation={defaultLocation}
-              onMarketSelect={handleMarketSelect}
-            />
-            {selectedMarket && (
-              <div className="absolute bottom-4 left-4 right-4 market-item selected z-10">
-                <div>
-                  {/* Market name only */}
-                  <div className="flex items-center">
-                    <h3 className="market-name">{selectedMarket.name}</h3>
-                  </div>
-                  
-                  {/* Next opening - hidden in Week mode */}
-                  {selectedMarketNextOpening && currentWhenMode !== 'week' && (
-                    <OpenOn 
-                      opening={selectedMarketNextOpening} 
-                      className="text-sm mt-1 text-green-600 font-bold" 
-                    />
-                  )}
-                  
-                  {/* Opening hours */}
-                  {selectedMarket.opening_hours && (
-                    <p className="text-sm mt-1 opacity-90">
-                      <span>Opening hours:</span> {selectedMarket.opening_hours}
-                    </p>
-                  )}
-                  
-                  {/* Address with distance - combined into one text element */}
-                  <p className="mt-2">
-                    {selectedMarket.address} {(() => {
-                      const coords = getCoordinates(selectedMarket);
-                      if (!coords) return null;
-                      const distance = calculateDistance(defaultLocation, coords);
-                      return `(${Math.round(distance * 0.621371)} miles)`;
-                    })()}
-                  </p>
-                  
-                  {/* View details button */}
+              
+              {/* Mode toggles */}
+              <div className="flex justify-between items-center">
+                {/* WHEN toggle: Soon vs Week */}
+                <div className="inline-flex bg-gray-200 rounded p-1">
                   <button 
-                    className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-md"
-                    onClick={() => handleMarketSelect(selectedMarket)}
+                    onClick={() => setCurrentWhenMode('soon')}
+                    className={`px-3 py-1 rounded ${currentWhenMode === 'soon' ? 'bg-white shadow-sm' : ''}`}
                   >
-                    View Market Details
+                    Soon Mode
+                  </button>
+                  <button 
+                    onClick={() => setCurrentWhenMode('week')}
+                    className={`px-3 py-1 rounded ${currentWhenMode === 'week' ? 'bg-white shadow-sm' : ''}`}
+                  >
+                    Week Mode
+                  </button>
+                </div>
+                
+                {/* VIEW toggle: List vs Map */}
+                <div className="inline-flex bg-gray-200 rounded p-1">
+                  <button 
+                    onClick={() => setViewMode('list')}
+                    className={`px-3 py-1 rounded ${viewMode === 'list' ? 'bg-white shadow-sm' : ''}`}
+                  >
+                    List View
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('map')}
+                    className={`px-3 py-1 rounded ${viewMode === 'map' ? 'bg-white shadow-sm' : ''}`}
+                  >
+                    Map View
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+          
+          {/* SECTION 2: Date filter controls - structurally isolated from content below */}
+          <div className="fixed top-[92px] left-0 right-0 z-30 bg-white border-b border-gray-200 pb-2">
+            {currentWhenMode === 'soon' && (
+              <div className="date-controls-container px-4 pt-0 mt-1">
+                {/* Mobile scroll indicator */}
+                <div style={{ textAlign: 'right', fontSize: '12px', color: '#888', marginBottom: '4px' }}>
+                  Swipe for more dates →
+                </div>
+                
+                {/* Horizontal scrolling container */}
+                <div 
+                  className="date-buttons-strip"
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'nowrap',
+                    overflowX: 'auto',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollSnapType: 'x mandatory',
+                    paddingBottom: '8px',
+                    width: '100%',
+                    msOverflowStyle: 'none', /* Hide scrollbar in IE and Edge */
+                    scrollbarWidth: 'none', /* Hide scrollbar in Firefox */
+                    touchAction: 'pan-x', /* Enable horizontal panning gestures */
+                    cursor: 'grab'
+                  }}
+                >
+                  {/* Today button */}
+                  <button 
+                    onClick={() => setCurrentDateFilter('today')}
+                    className={`date-button ${currentDateFilter === 'today' ? 'active' : ''}`}
+                    style={{ 
+                      flex: '0 0 auto',
+                      margin: '0 4px',
+                      padding: '8px 4px',
+                      height: '60px',
+                      width: '65px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                      borderRadius: '8px',
+                      border: currentDateFilter === 'today' ? '1px solid #007bff' : '1px solid #ddd',
+                      scrollSnapAlign: 'start'
+                    }}
+                  >
+                    <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Today</span>
+                    <span style={{ fontSize: '16px', display: 'block' }}>{format(new Date(), 'd')}</span>
+                  </button>
+                  
+                  {/* Tomorrow button */}
+                  <button 
+                    onClick={() => setCurrentDateFilter('tomorrow')}
+                    className={`date-button ${currentDateFilter === 'tomorrow' ? 'active' : ''}`}
+                    style={{ 
+                      flex: '0 0 auto',
+                      margin: '0 4px',
+                      padding: '8px 4px',
+                      height: '60px',
+                      width: '65px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                      borderRadius: '8px',
+                      border: currentDateFilter === 'tomorrow' ? '1px solid #007bff' : '1px solid #ddd',
+                      scrollSnapAlign: 'start'
+                    }}
+                  >
+                    <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{format(addDays(new Date(), 1), 'EEE')}</span>
+                    <span style={{ fontSize: '16px', display: 'block' }}>{format(addDays(new Date(), 1), 'd')}</span>
+                  </button>
+                  
+                  {/* Next 5 days as individual buttons */}
+                  {Array.from({ length: 5 }).map((_, index) => {
+                    const dayNum = index + 3; // day-3, day-4, etc.
+                    const date = addDays(new Date(), index + 2); // +2 because we start from day after tomorrow
+                    const dayName = format(date, 'EEE');
+                    const dayOfMonth = date.getDate();
+                    const filterName = `day-${dayNum}`;
+                    
+                    return (
+                      <button 
+                        key={filterName}
+                        onClick={() => setCurrentDateFilter(filterName as DateFilter)}
+                        className={`date-button ${currentDateFilter === filterName ? 'active' : ''}`}
+                        style={{ 
+                          flex: '0 0 auto',
+                          margin: '0 4px',
+                          padding: '8px 4px',
+                          height: '60px',
+                          width: '65px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          borderRadius: '8px',
+                          border: currentDateFilter === filterName ? '1px solid #007bff' : '1px solid #ddd',
+                          scrollSnapAlign: 'start'
+                        }}
+                      >
+                        <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{dayName}</span>
+                        <span style={{ fontSize: '16px', display: 'block' }}>{dayOfMonth}</span>
+                      </button>
+                    );
+                  })}
+                  
+                  {/* Next 14 days button */}
+                  <button 
+                    onClick={() => setCurrentDateFilter('next-14-days')}
+                    className={`date-button ${currentDateFilter === 'next-14-days' ? 'active' : ''}`}
+                    style={{ 
+                      flex: '0 0 auto',
+                      margin: '0 4px',
+                      padding: '8px 4px',
+                      height: '60px',
+                      width: '65px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                      borderRadius: '8px',
+                      border: currentDateFilter === 'next-14-days' ? '1px solid #007bff' : '1px solid #ddd',
+                      scrollSnapAlign: 'start'
+                    }}
+                  >
+                    <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Next</span>
+                    <span style={{ fontSize: '16px', display: 'block' }}>14</span>
                   </button>
                 </div>
               </div>
             )}
+            
+            {/* Week Mode controls */}
+            {currentWhenMode === 'week' && (
+              <div className="weekday-controls-container px-4 pt-2">
+                <WeekdaySelector 
+                  selectedDays={selectedWeekdays}
+                  onChange={setSelectedWeekdays}
+                />
+              </div>
+            )}
           </div>
-        ) : viewMode === 'list' ? (
-          <MarketList 
-            markets={filteredMarkets}
-            selectedMarket={selectedMarket}
-            onMarketSelect={handleMarketSelect}
-            userLocation={defaultLocation}
-            selectedDayCode={selectedDayCode}
-            isWeekMode={currentWhenMode === 'week'}
-            debugMode={debugMode}
-          />
-        ) : (
-          <MarketDetail 
-            market={selectedMarket!}
-            onBack={handleBackToList}
-          />
-        )}
-      </div>
+
+          {/* SECTION 3: Main content area with proper spacing */}
+          <main className="flex-grow" style={{ 
+            paddingTop: '160px', /* Space for fixed header + date controls */
+            paddingBottom: '20px'
+          }}>
+            {/* Conditional rendering based on view mode */}
+            {viewMode === 'map' ? (
+              <div className="map-container relative" style={{ height: 'calc(100vh - 160px)' }}>
+                <Map
+                  markets={filteredMarkets}
+                  selectedMarket={selectedMarket}
+                  userLocation={defaultLocation}
+                  onMarketSelect={handleMarketSelect}
+                />
+                {selectedMarket && (
+                  <div className="absolute bottom-4 left-4 right-4 market-item selected z-10">
+                    <div>
+                      {/* Market name only */}
+                      <div className="flex items-center">
+                        <h3 className="market-name">{selectedMarket.name}</h3>
+                      </div>
+                      
+                      {/* Next opening - hidden in Week mode */}
+                      {selectedMarketNextOpening && currentWhenMode !== 'week' && (
+                        <OpenOn 
+                          opening={selectedMarketNextOpening} 
+                          className="text-sm mt-1 text-green-600 font-bold" 
+                        />
+                      )}
+                      
+                      {/* Opening hours */}
+                      {selectedMarket.opening_hours && (
+                        <p className="text-sm mt-1 opacity-90">
+                          <span>Opening hours:</span> {selectedMarket.opening_hours}
+                        </p>
+                      )}
+                      
+                      {/* Address with distance - combined into one text element */}
+                      <p className="mt-2">
+                        {selectedMarket.address} {(() => {
+                          const coords = getCoordinates(selectedMarket);
+                          if (!coords) return null;
+                          const distance = calculateDistance(defaultLocation, coords);
+                          return `(${Math.round(distance * 0.621371)} miles)`;
+                        })()}
+                      </p>
+                      
+                      {/* View details button */}
+                      <button 
+                        className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-md"
+                        onClick={() => handleMarketSelect(selectedMarket)}
+                      >
+                        View Market Details
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* List view */
+              <MarketList 
+                markets={filteredMarkets}
+                selectedMarket={selectedMarket}
+                onMarketSelect={handleMarketSelect}
+                userLocation={defaultLocation}
+                selectedDayCode={selectedDayCode}
+                isWeekMode={currentWhenMode === 'week'}
+                debugMode={debugMode}
+              />
+            )}
+          </main>
+        </div>
+      )}
     </div>
   )
 }

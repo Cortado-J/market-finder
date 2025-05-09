@@ -70,24 +70,27 @@ body, html {
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* Date button scrolling container - iOS compatible */
-.date-scroll-container {
+/* Button strip - simple horizontal scrolling container */
+.date-buttons-strip {
   display: flex;
   flex-wrap: nowrap;
-  overflow-x: scroll;
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 0 0.5rem 0.5rem 0.5rem;
-  margin: 0 -0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
   width: 100%;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  /* Critical for iOS Safari */
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-perspective: 1000;
-  perspective: 1000;
-  /* Prevent elastic scrolling */
-  overscroll-behavior-x: none;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  touch-action: pan-x; /* Enable touch panning */
+  cursor: grab;
+  box-sizing: border-box;
+  z-index: 40;
+}
+
+/* Hide scrollbar for Chrome/Safari/newer Edge */
+.date-buttons-strip::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .date-scroll-container::-webkit-scrollbar {
@@ -101,25 +104,81 @@ body, html {
   }
 }
 
-/* Vertical date button styling */
+/* Bulletproof date scroll container for cross-device compatibility */
+.date-scroll-container {
+  /* Basic properties */
+  width: 100%;
+  overflow-x: scroll !important; /* Force scrolling behavior */
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar in IE/Edge */
+  margin-bottom: 0.5rem;
+  /* Prevent content wrapping */
+  white-space: nowrap;
+  /* Display mode that works consistently */
+  display: block !important;
+}
+
+/* Hide scrollbar in Chrome, Safari, and newer versions of Edge */
+.date-scroll-container::-webkit-scrollbar,
+.date-scroll-wrapper::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+  background: transparent !important;
+}
+
+/* For Safari and older WebKit browsers */
+.date-scroll-container::-webkit-scrollbar-thumb,
+.date-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Mobile-friendly horizontal scroll indicators */
+.date-scroll-wrapper {
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Add visual indicator that content is scrollable */
+.date-scroll-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.8));
+  pointer-events: none; /* Don't block touch events */
+}
+
+/* Date button styling - touch-optimized for horizontal scrolling */
 .date-button {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.0rem 0.0rem;
-  margin-right: 0.2rem;
+  padding: 0.25rem 0;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  margin-right: 0.5rem; /* Slightly more margin for better spacing */
   border-radius: 8px;
   border: 1px solid #e0e0e0;
   background-color: white;
   font-size: 0.85rem;
-  min-width: 3rem;
+  /* Fixed width to ensure consistency across devices */
+  min-width: 3.2rem;
+  width: 3.5rem; /* Fixed width prevents layout shifts */
   height: 3.2rem;
   cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   transition: all 0.2s ease;
+  vertical-align: middle; /* Aligns buttons properly in the row */
 }
 
 .date-button:active {
