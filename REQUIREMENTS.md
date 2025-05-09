@@ -11,6 +11,9 @@ Market Finder provides a simple, intuitive experience for finding local markets,
 - Default view shows markets open today
 - Filter options include: Today, Tomorrow, and the next 5 days individually
 - "Next 14 days" option to see all upcoming markets
+- Two filtering modes available:
+  - **Soon Mode**: Filter by specific dates (today, tomorrow, etc.)
+  - **Week Mode**: Filter by days of the week (e.g., show markets open on Mondays and Wednesdays)
 - Date filters persist when navigating between views
 
 #### View Modes
@@ -25,6 +28,9 @@ Market Finder provides a simple, intuitive experience for finding local markets,
 - Location (address and map coordinates)
 - Market categories with icons
 - Market images
+- Distance calculation from user's location
+- Directions to markets (Google Maps and Apple Maps integration)
+- Next three upcoming market dates on the detail page
 
 ### Data Scope
 - Initially we will restrict to markets in England and Wales
@@ -45,25 +51,34 @@ Governement API: https://www.gov.uk/bank-holidays.json could be used)
 #### Map View
 - Interactive Mapbox implementation
 - Markers for all markets matching the current filter
+- User location marker shown on the map
+- GeoLocation control for finding user's current position
+- Navigation controls for zooming and panning
 - Device-appropriate interactions:
   - Desktop: Hover tooltips show market names, clicking opens popup with details
-  - Mobile: Tapping markers opens popup with market details
+  - Mobile: Tapping markers opens popup with market details (hover tooltips disabled)
 - "View Market Details" button in popups for navigation to detail view
 
 #### Detail View
-- Large market image (300px height)
-- Complete market information
-- Category icons (30×30px)
-- Opening hours
+- Large market image
+- Complete market information organized in three sections:
+  - WHERE: Address, postcode, and directions buttons
+  - WHEN: Opening hours and next three upcoming market dates
+  - WHAT: Website, description, market image, and categories
+- Category icons with capitalized labels
+- Opening hours in human-readable format
 - Website link when available
-- Back button to return to previous view
+- Direction links to Google Maps and Apple Maps
+- Back button that returns to previous view (list or map) and restores scroll position
 
 ### 3. Technical Implementation
 
 #### Data Management
 - Supabase backend for market data storage
 - Single shared Supabase client instance to prevent duplicate connections
+- Market images stored in the "market-photos" bucket with the naming pattern "[market_ref]-main.png" in the "main" subfolder
 - Centralized image URL construction with the DRY principle
+- Environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) for Supabase configuration
 
 #### Map Integration
 - Mapbox for mapping functionality
@@ -72,7 +87,12 @@ Governement API: https://www.gov.uk/bank-holidays.json could be used)
 
 #### State Management
 - React state for UI components
-- Preserved state when navigating between views
+- Preserved state when navigating between views:
+  - Selected date filter
+  - List/map view mode selection
+  - Exact scroll position in the list view
+  - Selected weekdays in Week mode
+- Debug mode toggle for development and troubleshooting
 
 ## Future Development Roadmap
 

@@ -103,23 +103,19 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
   // Section styling helper
   const SectionCard = ({ title, icon, children }: { title: string, icon: string, children: React.ReactNode }) => (
     <div 
-      className="mb-2 rounded-lg" 
-      style={{
-        backgroundColor: '#e6f2ff', // Light blue background
-        padding: '10px 12px',
-        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-      }}
+      className="mb-1 rounded-lg shadow-sm bg-blue-50" 
+      style={{ padding: '6px 10px' }}
     >
       <div className="flex items-center">
-        <span className="text-xl mr-2" aria-hidden="true">{icon}</span>
-        <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+        <span className="text-lg mr-1" aria-hidden="true">{icon}</span>
+        <h2 className="text-lg font-semibold text-blue-900">{title}</h2>
       </div>
-      <div style={{ marginTop: '2px' }}>{children}</div>
+      <div>{children}</div>
     </div>
   );
 
   return (
-    <div className="market-detail py-3 max-w-2xl mx-auto bg-white min-h-screen" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
+    <div className="market-detail py-3 max-w-2xl mx-auto bg-white min-h-screen" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
       {/* Back button */}
       <button 
         onClick={onBack}
@@ -128,25 +124,40 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
         ← Back to list
       </button>
       
-      {/* Market name */}
-      <div style={{ backgroundColor: '#e6f2ff', borderRadius: '8px', padding: '8px', marginBottom: '10px' }}>
-        <h1 className="text-2xl font-bold text-center">{market.name}</h1>
+      {/* Market name and image */}
+      <div className="rounded-lg shadow-sm bg-blue-50 p-2 mb-1">
+        <h1 className="text-xl font-bold text-blue-900 text-center mb-1">{market.name}</h1>
+        
+        {/* Image inside the market name box */}
+        {imageUrl && (
+          <div className="rounded-lg overflow-hidden">
+            <img
+              src={imageUrl}
+              alt={`${market.name}`}
+              className="w-full h-auto object-cover"
+              onError={(e) => {
+                // Hide the image on error
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
       </div>
       
       {/* WHERE section */}
       <SectionCard title="WHERE" icon="🧭">
         {(addressWithoutPostcode || postcode) && (
-          <div className="mb-1">
-            <h3 className="text-sm font-bold" style={{ marginBottom: '0' }}>Address</h3>
-            {addressWithoutPostcode && <p className="leading-tight">{addressWithoutPostcode}</p>}
-            {postcode && <p className="text-blue-600 font-medium leading-tight">{postcode}</p>}
+          <div>
+            <h3 className="text-sm font-bold">Address</h3>
+            {addressWithoutPostcode && <p className="text-sm text-gray-700 leading-none">{addressWithoutPostcode}</p>}
+            {postcode && <p className="text-sm text-blue-800 leading-none">{postcode}</p>}
           </div>
         )}
         
         {(directionsUrls.google || directionsUrls.apple) && (
-          <div className="mb-1">
-            <h3 className="text-sm font-bold" style={{ marginBottom: '2px' }}>Directions</h3>
-            <div className="flex flex-col gap-1">
+          <div className="mt-0.5">
+            <h3 className="text-sm font-bold">Directions</h3>
+            <div className="flex gap-2">
               {directionsUrls.google && (
                 <button 
                   onClick={() => {
@@ -154,8 +165,8 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
                       window.open(directionsUrls.google, '_blank');
                     }
                   }}
-                  className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-center mb-1"
-                  style={{ width: '140px', border: 'none', cursor: 'pointer' }}
+                  className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-center flex-1"
+                  style={{ border: 'none', cursor: 'pointer' }}
                 >
                   Google Maps
                 </button>
@@ -167,8 +178,8 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
                       window.open(directionsUrls.apple, '_blank');
                     }
                   }}
-                  className="bg-gray-600 text-white px-3 py-1.5 rounded-md hover:bg-gray-700 transition-colors text-center"
-                  style={{ width: '140px', border: 'none', cursor: 'pointer' }}
+                  className="bg-gray-600 text-white px-3 py-1.5 rounded-md hover:bg-gray-700 transition-colors text-center flex-1"
+                  style={{ border: 'none', cursor: 'pointer' }}
                 >
                   Apple Maps
                 </button>
@@ -181,18 +192,19 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
       {/* WHEN section */}
       <SectionCard title="WHEN" icon="🕒">
         {market.opening_hours && (
-          <div style={{ marginBottom: '4px' }}>
-            <h3 className="text-sm font-bold" style={{ marginBottom: '0' }}>Opening Hours</h3>
-            <p className="leading-tight">{humanizeOpeningHours(market.opening_hours)}</p>
+          <div>
+            <h3 className="text-sm font-bold">Opening Hours</h3>
+            <p className="text-sm text-gray-700 leading-none">{humanizeOpeningHours(market.opening_hours)}</p>
           </div>
         )}
         
-        <div>
-          <h3 className="text-sm font-bold" style={{ marginBottom: '2px' }}>Next Dates</h3>
+        <div className="mt-0.5">
+          <h3 className="text-sm font-bold">Next Dates</h3>
           {nextThreeOpenings.length > 0 ? (
             <div className="space-y-1">
               {nextThreeOpenings.map((opening, index) => (
-                <div key={index} className="rounded-md leading-tight p-1" style={{ backgroundColor: 'rgba(219, 234, 254, 0.4)' }}>
+                <div key={index} className="rounded-md leading-none py-0.5 px-1 text-sm text-gray-700" 
+                     style={{ backgroundColor: '#edf5ff' }}>
                   {opening.startTime && opening.endTime ? (
                     <span>{format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}</span>
                   ) : (
@@ -202,7 +214,7 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic">No upcoming dates available</p>
+            <p className="text-sm text-gray-500 italic">No upcoming dates available</p>
           )}
         </div>
       </SectionCard>
@@ -211,13 +223,13 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
       <SectionCard title="WHAT" icon="🏪">
         {/* Website URL */}
         {market.website_url && (
-          <div className="mb-1">
-            <h3 className="text-sm font-bold" style={{ marginBottom: '0' }}>Website</h3>
+          <div>
+            <h3 className="text-sm font-bold">Website</h3>
             <a 
               href={market.website_url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline break-words leading-tight block"
+              className="text-blue-600 hover:underline break-words leading-tight block text-sm"
             >
               {market.website_url}
             </a>
@@ -226,38 +238,25 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
         
         {/* Description */}
         {market.description && (
-          <div className="mb-1">
-            <h3 className="text-sm font-bold" style={{ marginBottom: '0' }}>Description</h3>
-            <p className="text-gray-700 leading-tight">{market.description}</p>
+          <div>
+            <h3 className="text-sm font-bold">Description</h3>
+            <p className="text-sm text-gray-700 leading-none">{market.description}</p>
           </div>
         )}
         
-        {/* Large image */}
-        {imageUrl && (
-          <div style={{ margin: '6px 0', padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(219, 234, 254, 0.6)' }}>
-            <img
-              src={imageUrl}
-              alt={`${market.name}`}
-              className="w-full h-auto object-cover rounded-lg shadow-sm"
-              onError={(e) => {
-                // Hide the image on error
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          </div>
-        )}
+        {/* Image moved to top section */}
         
         {/* Categories */}
         {market.categories && market.categories.length > 0 && (
-          <div>
-            <h3 className="text-sm font-bold" style={{ marginBottom: '1px' }}>Categories</h3>
-            <ul className="list-none p-0 m-0" style={{ lineHeight: '1.2' }}>
+          <div className="mt-0.5">
+            <h3 className="text-sm font-bold">Categories</h3>
+            <ul className="list-none p-0 m-0 space-y-0">
               {market.categories.map(cat => (
-                <li key={cat} className="flex items-center leading-tight">
+                <li key={cat} className="flex items-center text-sm text-gray-700 leading-snug">
                   <img
                     src={getCategoryIconUrl(cat)}
                     alt=""
-                    className="w-[18px] h-[18px] mr-1"
+                    className="w-[16px] h-[16px] mr-1"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                   <span>{capitalizeWords(cat)}</span>
