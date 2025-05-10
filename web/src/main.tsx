@@ -4,26 +4,41 @@ import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 
-// Add a debug element to help identify if the app is loading at all
-const DebugInfo = () => {
+// A simple component to display build time and other debug info
+// It will now be conditionally rendered by App.tsx (or similar) based on its isDebugMode state.
+interface BuildInfoProps {
+  isDebugMode: boolean;
+}
+
+const BuildInfo: React.FC<BuildInfoProps> = ({ isDebugMode }) => {
+  if (!isDebugMode) {
+    return null; // Don't render anything if not in debug mode
+  }
+
+  // Styles for the build info box
+  const style: React.CSSProperties = {
+    position: 'fixed', 
+    bottom: 0, 
+    right: 0, 
+    background: 'rgba(0,0,0,0.7)', 
+    color: 'white', 
+    padding: '8px', 
+    fontSize: '12px',
+    zIndex: 9999,
+    maxWidth: '300px',
+    overflowWrap: 'break-word'
+  };
+
   return (
-    <div id="debug-info" style={{ 
-      position: 'fixed', 
-      bottom: 0, 
-      right: 0, 
-      background: 'rgba(0,0,0,0.7)', 
-      color: 'white', 
-      padding: '8px', 
-      fontSize: '12px',
-      zIndex: 9999,
-      maxWidth: '300px',
-      overflowWrap: 'break-word'
-    }}>
+    <div id="debug-info" style={style}>
       <div>Env vars loaded: {Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')).length}</div>
       <div>Build time: {new Date().toISOString()}</div>
     </div>
-  )
-}
+  );
+};
+
+// Export BuildInfo so it can be imported by App.tsx or other components
+export { BuildInfo };
 
 // Initialize the app with error handling
 try {
@@ -36,7 +51,7 @@ try {
     <StrictMode>
       <ErrorBoundary>
         <App />
-        <DebugInfo />
+        {/* <BuildInfo /> BuildInfo will now be rendered by App.tsx conditionally */}
       </ErrorBoundary>
     </StrictMode>,
   )

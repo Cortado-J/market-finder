@@ -13,6 +13,7 @@ import { MainContent } from './components/MainContent';
 import { format, addDays } from 'date-fns';
 // calculateDistance, getCoordinates are not directly used here anymore, but might be by child components
 import { useMarketData } from './hooks/useMarketData'; // Import the new hook
+import { BuildInfo } from './main'; // Import BuildInfo
 
 // Default location coordinates for BS7 8LZ
 const defaultLocation: [number, number] = [-2.5973, 51.4847];
@@ -150,6 +151,7 @@ function App() {
           </div>
         </div>
       )}
+      <BuildInfo isDebugMode={debugMode} /> {/* Render BuildInfo here */}
     </div>
   );
 }
