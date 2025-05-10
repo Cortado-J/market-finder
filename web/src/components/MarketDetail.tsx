@@ -141,7 +141,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
 
   const SubsectionWrapper: React.FC<SubsectionWrapperProps> = ({ children, isDebugMode, className }) => {
     const style: CSSProperties = {
-      paddingTop: '6px',
+      paddingTop: '8px',
     };
     if (isDebugMode) {
       style.border = '1px dashed blue';
@@ -166,6 +166,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     const headingStyle: CSSProperties = {
       // Margin and line-height will be controlled by Tailwind className
       padding: '0px',
+      fontWeight: 'bold', // Ensure boldness
     };
     if (isDebugMode) {
       headingStyle.border = '1px dashed green';
@@ -177,8 +178,8 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         <div
           role="heading"
           aria-level={3}
-          className="text-sm font-bold leading-none mt-2 mb-0 p-0" // Added p-0, ensure mt-2 mb-0 are effective
-          style={headingStyle} // Renamed from h3Style for clarity
+          className="text-sm font-bold leading-none mt-2 mb-0 p-0" // font-bold class is still good for semantics
+          style={headingStyle}
         >
           {title}
         </div>
