@@ -111,6 +111,7 @@ function App() {
         <MarketDetail 
           market={selectedMarket!} 
           onBack={handleBackToList} 
+          isDebugMode={debugMode}
           // Assuming MarketDetail is structured to fill available space, or add style={{ flexGrow: 1 }}
         />
       ) : (

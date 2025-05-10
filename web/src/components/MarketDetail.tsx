@@ -10,9 +10,10 @@ interface MarketDetailProps {
   market: Market;
   onBack: () => void;
   marketNextOpening?: MarketOpening;
+  isDebugMode?: boolean; // Added for debug borders
 }
 
-export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetailProps) {
+export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = false }: MarketDetailProps) {
   // State to detect if user is on a mobile device
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   
@@ -101,13 +102,17 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
   };
   
   // Section styling helper
-  const SectionCard = ({ title, icon, children }: { title: string, icon: string, children: React.ReactNode }) => (
+  const SectionCard = ({ title, icon, children, isDebugMode: cardDebugMode }: { title: string, icon: string, children: React.ReactNode, isDebugMode?: boolean }) => (
     <div 
-      className="mb-1 shadow-sm text-blue-900" 
-      style={{ 
-        padding: '8px 12px', 
+      className="shadow-sm text-blue-900 mb-1" 
+      style={{
+        paddingTop: '8px', 
+        paddingLeft: '12px', 
+        paddingRight: '12px', 
+        paddingBottom: '24px', 
         backgroundColor: '#bfdbfe', 
-        borderRadius: '0.5rem' 
+        borderRadius: '0.5rem',
+        ...(cardDebugMode && { border: '2px dashed hotpink', boxSizing: 'border-box' }) 
       }}
     >
       <div className="flex items-center">
@@ -121,26 +126,27 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
   return (
     // Main container for MarketDetail - flex column to allow fixed header and scrollable content
     <div className="market-detail flex flex-col h-full max-w-2xl mx-auto bg-white" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-      {/* Fixed Header Area */}
-      <div className="pt-3 pb-2 border-b border-gray-200 bg-white">
-        {/* Back button */}
-        <button 
-          onClick={onBack}
-          className="nav-action-button mb-2"
-        >
-          ← Back to list
-        </button>
-        {/* Market name - moved to header, font size reduced */}
+      {/* Fixed Header Area - Reduced Padding */}
+      <div className="pt-1 pb-1 border-b border-gray-200 bg-white">
+        {/* Market name & Back Button in a styled box */}
         <div 
-          className="mb-2 shadow-sm" 
+          className="mb-1 shadow-sm flex items-center gap-2"
           style={{
             backgroundColor: '#bfdbfe',
-            padding: '8px 12px',
-            borderRadius: '0.5rem',
-            textAlign: 'center'
+            padding: '2px 12px',
+            borderRadius: '0.5rem'
           }}
         >
-          <h2 className="text-lg font-bold text-blue-900">{market.name}</h2>
+          {/* Back button - reverted to less-than character */}
+          <button 
+            onClick={onBack}
+            className="flex items-center justify-center w-[3.15rem] h-[3.2rem] rounded-lg border border-gray-300 bg-blue-50 text-blue-700 shadow-sm hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+            aria-label="Back to list"
+          >
+            <span className="text-6xl font-bold">&lt;</span>
+          </button>
+          {/* Market name - takes remaining space and centers text */}
+          <h2 className="text-lg font-bold text-blue-900 flex-grow text-center">{market.name}</h2>
         </div>
       </div>
 
@@ -151,19 +157,19 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
           <div 
             className="shadow-sm mb-1" 
             style={{
-              padding: '8px', // p-2 equivalent
+              padding: '8px', 
               backgroundColor: '#bfdbfe',
               borderRadius: '0.5rem',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              ...(isDebugMode && { border: '2px dashed hotpink', boxSizing: 'border-box' }) 
             }}
           >
-            <div className="rounded-lg overflow-hidden"> {/* Existing inner div, keep its rounding & overflow for nested effect if any */}
+            <div className="rounded-lg overflow-hidden"> 
               <img
                 src={imageUrl}
                 alt={`${market.name}`}
-                className="w-full h-auto object-cover" // Image itself doesn't need rounding if container clips
+                className="w-full h-auto object-cover" 
                 onError={(e) => {
-                  // Hide the image on error
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />
@@ -172,7 +178,7 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
         )}
         
         {/* WHERE section */}
-        <SectionCard title="WHERE" icon="🧭">
+        <SectionCard title="WHERE" icon="🧭" isDebugMode={isDebugMode}>
           {(addressWithoutPostcode || postcode) && (
             <div>
               <h3 className="text-sm font-bold">Address</h3>
@@ -217,7 +223,7 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
         </SectionCard>
         
         {/* WHEN section */}
-        <SectionCard title="WHEN" icon="🕒">
+        <SectionCard title="WHEN" icon="🕒" isDebugMode={isDebugMode}>
           {market.opening_hours && (
             <div>
               <h3 className="text-sm font-bold">Opening Hours</h3>
@@ -247,7 +253,7 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
         </SectionCard>
         
         {/* WHAT section */}
-        <SectionCard title="WHAT" icon="🏪">
+        <SectionCard title="WHAT" icon="🛍️" isDebugMode={isDebugMode}>
           {/* Website URL */}
           {market.website_url && (
             <div>
