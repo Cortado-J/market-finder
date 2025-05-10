@@ -188,6 +188,29 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     );
   };
 
+  // NEW DetailText component
+  interface DetailTextProps {
+    children: React.ReactNode;
+    isDebugMode?: boolean;
+    textColorClassName?: string;
+    key?: string | number; // Allow key prop
+  }
+
+  const DetailText: React.FC<DetailTextProps> = ({ children, isDebugMode, textColorClassName = "text-gray-700", key }) => {
+    const pStyle: CSSProperties = {};
+    if (isDebugMode) {
+      pStyle.border = '1px dashed orange';
+      pStyle.boxSizing = 'border-box';
+    }
+    // mt-1 adds 4px top margin, p-0 ensures no extra padding from the <p> itself
+    const classNames = `text-sm leading-none mt-1 mb-0 p-0 ${textColorClassName}`;
+    return (
+      <p key={key} className={classNames} style={pStyle}>
+        {children}
+      </p>
+    );
+  };
+
   return (
     // Main container for MarketDetail - flex column to allow fixed header and scrollable content
     <div className="market-detail flex flex-col h-full max-w-2xl mx-auto bg-white" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
@@ -247,16 +270,16 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           {(addressWithoutPostcode || postcode) && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
               <DetailItem title="Address" isDebugMode={isDebugMode}>
-                {addressWithoutPostcode && 
-                  <p 
-                    className="text-sm text-gray-700 leading-none mt-0 mb-0" 
-                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
-                  >{addressWithoutPostcode}</p>}
-                {postcode && 
-                  <p 
-                    className="text-sm text-blue-800 leading-none mt-0 mb-0" 
-                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
-                  >{postcode}</p>}
+                {addressWithoutPostcode && (
+                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                    {addressWithoutPostcode}
+                  </DetailText>
+                )}
+                {postcode && (
+                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-blue-800">
+                    {postcode}
+                  </DetailText>
+                )}
               </DetailItem>
             </SubsectionWrapper>
           )}
@@ -302,10 +325,23 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           {market.opening_hours && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
               <DetailItem title="Opening Hours" isDebugMode={isDebugMode}>
-                <p 
-                  className="text-sm text-gray-700 leading-none mt-0 mb-0" 
-                  style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
-                >{humanizeOpeningHours(market.opening_hours)}</p>
+                {((): React.ReactNode => {
+                  const hoursContent = humanizeOpeningHours(market.opening_hours);
+                  if (Array.isArray(hoursContent)) {
+                    return hoursContent.map((line: string, index: number) => (
+                      <DetailText key={index} isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                        {line}
+                      </DetailText>
+                    ));
+                  } else if (typeof hoursContent === 'string') {
+                    return (
+                      <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                        {hoursContent}
+                      </DetailText>
+                    );
+                  }
+                  return null; // Should not happen if humanizeOpeningHours is well-behaved
+                })()}
               </DetailItem>
             </SubsectionWrapper>
           )}
@@ -319,15 +355,21 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
                       <div key={index} className="rounded-md leading-tight py-0.5 px-1 text-sm text-gray-700" 
                           style={{ backgroundColor: '#edf5ff', ...(isDebugMode && { border: '1px dashed teal', boxSizing: 'border-box' }) }}>
                           {opening.startTime && opening.endTime ? (
-                            <span style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}>{format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}</span>
+                            <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                              {format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}
+                            </DetailText>
                           ) : (
-                            <span style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}>{format(parseISO(opening.date!), 'EEEE, MMMM d')} (Times TBC)</span>
+                            <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                              {format(parseISO(opening.date!), 'EEEE, MMMM d')} (Times TBC)
+                            </DetailText>
                           )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 leading-none mt-0 mb-0" style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}>No upcoming dates available</p>
+                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-500">
+                    No upcoming dates available
+                  </DetailText>
                 )}
               </DetailItem>
             </SubsectionWrapper>
@@ -340,15 +382,11 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           {market.website_url && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
               <DetailItem title="Website URL" isDebugMode={isDebugMode}>
-                <a 
-                  href={market.website_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline text-sm break-all"
-                  style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}
-                >
-                  {market.website_url}
-                </a>
+                <DetailText isDebugMode={isDebugMode} textColorClassName="text-blue-600 hover:underline">
+                  <a href={market.website_url} target="_blank" rel="noopener noreferrer">
+                    {market.website_url}
+                  </a>
+                </DetailText>
               </DetailItem>
             </SubsectionWrapper>
           )}
@@ -360,10 +398,9 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
               className={market.website_url ? 'mt-2' : ''} // Adjusted conditional margin from original div for description
             >
               <DetailItem title="Description" isDebugMode={isDebugMode}>
-                <p 
-                  className="text-sm text-gray-700 leading-none mt-0 mb-0" 
-                  style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
-                >{market.description}</p>
+                <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                  {market.description}
+                </DetailText>
               </DetailItem>
             </SubsectionWrapper>
           )}
@@ -384,7 +421,9 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
                         className="w-[16px] h-[16px] mr-1"
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
-                      <span style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}>{capitalizeWords(category)}</span>
+                      <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                        {capitalizeWords(category)}
+                      </DetailText>
                     </div>
                   ))}
                 </div>
@@ -399,34 +438,29 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
             {market.contact_name && (
               <SubsectionWrapper className="mb-0.5" isDebugMode={isDebugMode}>
                 <DetailItem title="Contact Name" isDebugMode={isDebugMode}>
-                  <p 
-                    className="text-sm text-gray-700 leading-none mt-0 mb-0" 
-                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
-                  >{market.contact_name}</p>
+                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                    {market.contact_name}
+                  </DetailText>
                 </DetailItem>
               </SubsectionWrapper>
             )}
             {market.phone && (
               <SubsectionWrapper className="mb-0.5" isDebugMode={isDebugMode}>
                 <DetailItem title="Phone" isDebugMode={isDebugMode}>
-                  <p 
-                    className="text-sm text-gray-700 leading-none mt-0 mb-0" 
-                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
-                  >{market.phone}</p>
+                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                    {market.phone}
+                  </DetailText>
                 </DetailItem>
               </SubsectionWrapper>
             )}
             {market.email && (
               <SubsectionWrapper isDebugMode={isDebugMode}>
                 <DetailItem title="Email" isDebugMode={isDebugMode}>
-                  <p 
-                    className="text-sm text-gray-700 leading-none mt-0 mb-0" 
-                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
-                  >
-                    <a href={`mailto:${market.email}`} className="text-blue-600 hover:underline">
+                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-blue-600 hover:underline">
+                    <a href={`mailto:${market.email}`}>
                       {market.email}
                     </a>
-                  </p>
+                  </DetailText>
                 </DetailItem>
               </SubsectionWrapper>
             )}
@@ -438,10 +472,9 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           <SectionCard title="MORE INFO" icon="ℹ️" isDebugMode={isDebugMode}>
             <SubsectionWrapper isDebugMode={isDebugMode}>
               <DetailItem title="More Info" isDebugMode={isDebugMode}>
-                <p 
-                  className="text-sm text-gray-700 whitespace-pre-wrap leading-none mt-0 mb-0" 
-                  style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
-                >{market.more_info}</p>
+                <DetailText isDebugMode={isDebugMode} textColorClassName="text-gray-700">
+                  {market.more_info}
+                </DetailText>
               </DetailItem>
             </SubsectionWrapper>
           </SectionCard>
