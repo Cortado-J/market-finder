@@ -2,7 +2,7 @@ import { Market } from '../types/Market';
 import { MarketOpening, marketOpeningsBetween } from '../utils/getMarketOpenings';
 import { getMarketImageUrl, getCategoryIconUrl } from '../utils/imageUtils';
 import { humanizeOpeningHours } from '../utils/scheduleUtils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, CSSProperties } from 'react';
 import { OpenOn } from './NextOpening';
 import { addDays, format, parseISO } from 'date-fns';
 
@@ -102,26 +102,90 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
   };
   
   // Section styling helper
-  const SectionCard = ({ title, icon, children, isDebugMode: cardDebugMode }: { title: string, icon: string, children: React.ReactNode, isDebugMode?: boolean }) => (
-    <div 
-      className="shadow-sm text-blue-900 mb-[0.5rem]" 
-      style={{
-        paddingTop: '0px', 
-        paddingLeft: '12px', 
-        paddingRight: '12px', 
-        paddingBottom: '12px', 
-        backgroundColor: '#bfdbfe', 
-        borderRadius: '0.5rem',
-        ...(cardDebugMode && { border: '2px dashed hotpink', boxSizing: 'border-box' }) 
-      }}
-    >
-      <div className="flex items-center mb-0">
-        <span className="text-lg mr-1" aria-hidden="true">{icon}</span>
-        <h2 className="text-lg font-semibold text-blue-900">{title}</h2>
+  const SectionCard: React.FC<{ title: string, icon: string, children: React.ReactNode, isDebugMode?: boolean }> = ({ title, icon, children, isDebugMode }) => {
+    // Debug style for the H2 title
+    const h2DebugStyle: CSSProperties = isDebugMode 
+      ? { border: '1px dashed cyan', boxSizing: 'border-box', margin: '0px', padding: '0px', lineHeight: '1' } 
+      : { margin: '0px', padding: '0px', lineHeight: '1' };
+
+    return (
+      <div 
+        className={`shadow-sm text-blue-900 ${isDebugMode ? 'debug-section' : ''} mb-[0.5rem]`}
+        style={{ paddingTop: '2px', paddingLeft: '12px', paddingRight: '12px', paddingBottom: '2px', backgroundColor: '#e0f2fe', borderRadius: '0.5rem' }} 
+      >
+        <div className="flex items-center mb-0"> {/* This div wraps the icon and H2 title */}
+          {icon && <span className="text-lg mr-1" aria-hidden="true">{icon}</span>}
+          <h2 
+            className="text-lg font-semibold text-blue-900 mt-0 mb-0" 
+            style={h2DebugStyle} 
+          >
+            {title}
+          </h2>
+        </div>
+        <div 
+          className="m-0 p-0" 
+          style={isDebugMode ? { border: '1px solid black', boxSizing: 'border-box'} : {}}
+        >
+          {children}
+        </div>
       </div>
-      <div>{children}</div>
-    </div>
-  );
+    );
+  };
+
+  // SubsectionWrapper component
+  interface SubsectionWrapperProps {
+    children: React.ReactNode;
+    isDebugMode?: boolean;
+    className?: string; // To allow passing existing margin classes etc.
+  }
+
+  const SubsectionWrapper: React.FC<SubsectionWrapperProps> = ({ children, isDebugMode, className }) => {
+    const style: CSSProperties = {
+      paddingTop: '6px',
+    };
+    if (isDebugMode) {
+      style.border = '1px dashed blue';
+      style.boxSizing = 'border-box';
+    }
+
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  };
+
+  // DetailItem component
+  interface DetailItemProps {
+    title: string;
+    children: React.ReactNode;
+    isDebugMode?: boolean;
+  }
+
+  const DetailItem: React.FC<DetailItemProps> = ({ title, children, isDebugMode }) => {
+    const headingStyle: CSSProperties = {
+      // Margin and line-height will be controlled by Tailwind className
+      padding: '0px',
+    };
+    if (isDebugMode) {
+      headingStyle.border = '1px dashed green';
+      headingStyle.boxSizing = 'border-box';
+    }
+
+    return (
+      <>
+        <div
+          role="heading"
+          aria-level={3}
+          className="text-sm font-bold leading-none mt-2 mb-0 p-0" // Added p-0, ensure mt-2 mb-0 are effective
+          style={headingStyle} // Renamed from h3Style for clarity
+        >
+          {title}
+        </div>
+        {children}
+      </>
+    );
+  };
 
   return (
     // Main container for MarketDetail - flex column to allow fixed header and scrollable content
@@ -180,123 +244,207 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         {/* WHERE section */}
         <SectionCard title="WHERE" icon="🧭" isDebugMode={isDebugMode}>
           {(addressWithoutPostcode || postcode) && (
-            <div>
-              <h3 className="text-sm font-bold mt-0 mb-px">Address</h3>
-              {addressWithoutPostcode && <p className="text-sm text-gray-700 leading-tight mt-0 mb-0">{addressWithoutPostcode}</p>}
-              {postcode && <p className="text-sm text-blue-800 leading-tight mt-0 mb-0">{postcode}</p>}
-            </div>
+            <SubsectionWrapper isDebugMode={isDebugMode}>
+              <DetailItem title="Address" isDebugMode={isDebugMode}>
+                {addressWithoutPostcode && 
+                  <p 
+                    className="text-sm text-gray-700 leading-none mt-0 mb-0" 
+                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
+                  >{addressWithoutPostcode}</p>}
+                {postcode && 
+                  <p 
+                    className="text-sm text-blue-800 leading-none mt-0 mb-0" 
+                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
+                  >{postcode}</p>}
+              </DetailItem>
+            </SubsectionWrapper>
           )}
           
           {(directionsUrls.google || directionsUrls.apple) && (
-            <div className="mt-0.5">
-              <h3 className="text-sm font-bold mt-0 mb-px">Directions</h3>
-              <div className="flex gap-2">
-                {directionsUrls.google && (
-                  <button 
-                    onClick={() => {
-                      if (directionsUrls.google) {
-                        window.open(directionsUrls.google, '_blank');
+            <SubsectionWrapper className="mt-0.5" isDebugMode={isDebugMode}>
+              <DetailItem title="Directions" isDebugMode={isDebugMode}>
+                <div className="flex gap-2" style={isDebugMode ? { border: '1px dashed purple', boxSizing: 'border-box' } : {}}>
+                  {directionsUrls.google && (
+                    <button 
+                      onClick={() => {
+                        if (directionsUrls.google) {
+                          window.open(directionsUrls.google, '_blank');
+                        }
+                      }}
+                      className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-center flex-1"
+                      style={isDebugMode ? { border: '1px dashed red', boxSizing: 'border-box' } : {}}
+                    >
+                      Google Maps
+                    </button>
+                  )}
+                  {directionsUrls.apple && (
+                    <button 
+                      onClick={() => {
+                      if (directionsUrls.apple) {
+                        window.open(directionsUrls.apple, '_blank');
                       }
                     }}
-                    className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-center flex-1"
-                    style={{ border: 'none', cursor: 'pointer' }}
-                  >
-                    Google Maps
-                  </button>
-                )}
-                {directionsUrls.apple && (
-                  <button 
-                    onClick={() => {
-                    if (directionsUrls.apple) {
-                      window.open(directionsUrls.apple, '_blank');
-                    }
-                  }}
-                    className="bg-gray-600 text-white px-3 py-1.5 rounded-md hover:bg-gray-700 transition-colors text-center flex-1"
-                    style={{ border: 'none', cursor: 'pointer' }}
-                  >
-                    Apple Maps
-                  </button>
-                )}
-              </div>
-            </div>
+                      className="bg-gray-600 text-white px-3 py-1.5 rounded-md hover:bg-gray-700 transition-colors text-center flex-1"
+                      style={isDebugMode ? { border: '1px dashed red', boxSizing: 'border-box' } : {}}
+                    >
+                      Apple Maps
+                    </button>
+                  )}
+                </div>
+              </DetailItem>
+            </SubsectionWrapper>
           )}
         </SectionCard>
         
         {/* WHEN section */}
         <SectionCard title="WHEN" icon="🕒" isDebugMode={isDebugMode}>
           {market.opening_hours && (
-            <div>
-              <h3 className="text-sm font-bold mt-0 mb-px">Opening Hours</h3>
-              <p className="text-sm text-gray-700 leading-tight mt-0 mb-0">{humanizeOpeningHours(market.opening_hours)}</p>
-            </div>
+            <SubsectionWrapper isDebugMode={isDebugMode}>
+              <DetailItem title="Opening Hours" isDebugMode={isDebugMode}>
+                <p 
+                  className="text-sm text-gray-700 leading-none mt-0 mb-0" 
+                  style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
+                >{humanizeOpeningHours(market.opening_hours)}</p>
+              </DetailItem>
+            </SubsectionWrapper>
           )}
           
-          <div className="mt-1"> 
-            <h3 className="text-sm font-bold mt-0 mb-px">Next Dates</h3>
-            {nextThreeOpenings.length > 0 ? (
-              <div className="space-y-1">
-                {nextThreeOpenings.map((opening, index) => (
-                  <div key={index} className="rounded-md leading-tight py-0.5 px-1 text-sm text-gray-700" 
-                       style={{ backgroundColor: '#edf5ff' }}>
-                    {opening.startTime && opening.endTime ? (
-                      <span>{format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}</span>
-                    ) : (
-                      <span>{format(parseISO(opening.date!), 'EEEE, MMMM d')}</span>
-                    )}
+          {nextThreeOpenings && nextThreeOpenings.length > 0 && (
+            <SubsectionWrapper className="mt-1" isDebugMode={isDebugMode}>
+              <DetailItem title="Next Dates" isDebugMode={isDebugMode}>
+                {nextThreeOpenings.length > 0 ? (
+                  <div className="space-y-1" style={isDebugMode ? { border: '1px dashed purple', boxSizing: 'border-box' } : {}}>
+                    {nextThreeOpenings.map((opening, index) => (
+                      <div key={index} className="rounded-md leading-tight py-0.5 px-1 text-sm text-gray-700" 
+                          style={{ backgroundColor: '#edf5ff', ...(isDebugMode && { border: '1px dashed teal', boxSizing: 'border-box' }) }}>
+                          {opening.startTime && opening.endTime ? (
+                            <span style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}>{format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}</span>
+                          ) : (
+                            <span style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}>{format(parseISO(opening.date!), 'EEEE, MMMM d')} (Times TBC)</span>
+                          )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic">No upcoming dates available</p>
-            )}
-          </div>
+                ) : (
+                  <p className="text-sm text-gray-500 leading-none mt-0 mb-0" style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}>No upcoming dates available</p>
+                )}
+              </DetailItem>
+            </SubsectionWrapper>
+          )}
         </SectionCard>
         
         {/* WHAT section */}
         <SectionCard title="WHAT" icon="🛍️" isDebugMode={isDebugMode}>
           {/* Website URL */}
           {market.website_url && (
-            <div>
-              <h3 className="text-sm font-bold mt-0 mb-px">Website URL</h3>
-              <a 
-                href={market.website_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-sm break-all"
-              >
-                {market.website_url}
-              </a>
-            </div>
+            <SubsectionWrapper isDebugMode={isDebugMode}>
+              <DetailItem title="Website URL" isDebugMode={isDebugMode}>
+                <a 
+                  href={market.website_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline text-sm break-all"
+                  style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}
+                >
+                  {market.website_url}
+                </a>
+              </DetailItem>
+            </SubsectionWrapper>
           )}
           
           {/* Description */}
           {market.description && (
-            <div>
-              <h3 className="text-sm font-bold mt-0 mb-px">Description</h3>
-              <p className="text-sm text-gray-700 leading-tight mt-0 mb-0">{market.description}</p>
-            </div>
+            <SubsectionWrapper 
+              isDebugMode={isDebugMode} 
+              className={market.website_url ? 'mt-2' : ''} // Adjusted conditional margin from original div for description
+            >
+              <DetailItem title="Description" isDebugMode={isDebugMode}>
+                <p 
+                  className="text-sm text-gray-700 leading-none mt-0 mb-0" 
+                  style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
+                >{market.description}</p>
+              </DetailItem>
+            </SubsectionWrapper>
           )}
           
           {/* Categories */}
           {market.categories && market.categories.length > 0 && (
-            <div className={market.website_url || market.description ? "mt-2" : ""}> 
-              <h3 className="text-sm font-bold mt-0 mb-px">Categories</h3>
-              <div className="flex flex-wrap gap-1 mt-0.5">
-                {market.categories.map((category, index) => (
-                  <div key={index} className="flex items-center text-sm text-gray-700 leading-tight">
-                    <img
-                      src={getCategoryIconUrl(category)}
-                      alt=""
-                      className="w-[16px] h-[16px] mr-1"
-                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                    <span>{capitalizeWords(category)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <SubsectionWrapper 
+              isDebugMode={isDebugMode} 
+              className={market.website_url || market.description ? "mt-2" : ""}
+            >
+              <DetailItem title="Categories" isDebugMode={isDebugMode}>
+                <div className="flex flex-wrap gap-1 mt-0.5" style={isDebugMode ? { border: '1px dashed purple', boxSizing: 'border-box' } : {}}>
+                  {market.categories.map((category, index) => (
+                    <div key={index} className="flex items-center text-sm text-gray-700 leading-tight" style={isDebugMode ? { border: '1px dashed teal', boxSizing: 'border-box' } : {}}>
+                      <img
+                        src={getCategoryIconUrl(category)}
+                        alt=""
+                        className="w-[16px] h-[16px] mr-1"
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      <span style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box' } : {}}>{capitalizeWords(category)}</span>
+                    </div>
+                  ))}
+                </div>
+              </DetailItem>
+            </SubsectionWrapper>
           )}
         </SectionCard>
+        
+        {/* CONTACT section (conditionally rendered) */}
+        {(market.contact_name || market.phone || market.email) && (
+          <SectionCard title="CONTACT" icon="📞" isDebugMode={isDebugMode}>
+            {market.contact_name && (
+              <SubsectionWrapper className="mb-0.5" isDebugMode={isDebugMode}>
+                <DetailItem title="Contact Name" isDebugMode={isDebugMode}>
+                  <p 
+                    className="text-sm text-gray-700 leading-none mt-0 mb-0" 
+                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
+                  >{market.contact_name}</p>
+                </DetailItem>
+              </SubsectionWrapper>
+            )}
+            {market.phone && (
+              <SubsectionWrapper className="mb-0.5" isDebugMode={isDebugMode}>
+                <DetailItem title="Phone" isDebugMode={isDebugMode}>
+                  <p 
+                    className="text-sm text-gray-700 leading-none mt-0 mb-0" 
+                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
+                  >{market.phone}</p>
+                </DetailItem>
+              </SubsectionWrapper>
+            )}
+            {market.email && (
+              <SubsectionWrapper isDebugMode={isDebugMode}>
+                <DetailItem title="Email" isDebugMode={isDebugMode}>
+                  <p 
+                    className="text-sm text-gray-700 leading-none mt-0 mb-0" 
+                    style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
+                  >
+                    <a href={`mailto:${market.email}`} className="text-blue-600 hover:underline">
+                      {market.email}
+                    </a>
+                  </p>
+                </DetailItem>
+              </SubsectionWrapper>
+            )}
+          </SectionCard>
+        )}
+        
+        {/* MORE INFO section (conditionally rendered) */}
+        {market.more_info && (
+          <SectionCard title="MORE INFO" icon="ℹ️" isDebugMode={isDebugMode}>
+            <SubsectionWrapper isDebugMode={isDebugMode}>
+              <DetailItem title="More Info" isDebugMode={isDebugMode}>
+                <p 
+                  className="text-sm text-gray-700 whitespace-pre-wrap leading-none mt-0 mb-0" 
+                  style={isDebugMode ? { border: '1px dashed orange', boxSizing: 'border-box', margin: '0px', padding: '0px' } : { margin: '0px', padding: '0px' }}
+                >{market.more_info}</p>
+              </DetailItem>
+            </SubsectionWrapper>
+          </SectionCard>
+        )}
       </div>
     </div>
   );

@@ -12,4 +12,8 @@ export interface Market {
   market_ref?: string  // Reference code for the market
   imageUrl?: string    // URL to the market image
   categories?: string[] // Categories for market icons
+  contact_name?: string | null
+  phone?: string | null
+  email?: string | null
+  more_info?: string | null
 }
