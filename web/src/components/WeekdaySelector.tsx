@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
+import { DateModeButton } from './DateModeButton'; // Assuming DateModeButton is in the same directory
 
 export type Weekday = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
 interface WeekdaySelectorProps {
   selectedDays: Weekday[];
   onChange: (days: Weekday[]) => void;
+  debugMode?: boolean;
 }
 
 /**
  * Component for selecting multiple days of the week
  */
-export function WeekdaySelector({ selectedDays = [], onChange }: WeekdaySelectorProps) {
+export function WeekdaySelector({ selectedDays = [], onChange, debugMode }: WeekdaySelectorProps) {
   const [selected, setSelected] = useState<Weekday[]>(selectedDays);
 
   // Update parent component when selection changes
@@ -57,25 +59,30 @@ export function WeekdaySelector({ selectedDays = [], onChange }: WeekdaySelector
   };
 
   return (
-    <div className="flex flex-wrap gap-2 py-1">
-      {/* All button */}
-      <button
-        onClick={toggleAll}
-        className={`filter-button ${allSelected ? 'active' : ''}`}
+    <div className="date-controls-container">
+      <div 
+        className="date-buttons-strip" 
+        style={{ paddingTop: '0.4rem', paddingBottom: '0.4rem' }} // Override CSS top/bottom padding
       >
-        All
-      </button>
-      
-      {/* Day buttons */}
-      {weekdays.map(day => (
-        <button
-          key={day.id}
-          onClick={() => toggleDay(day.id)}
-          className={`filter-button ${selected.includes(day.id) ? 'active' : ''}`}
-        >
-          {day.label}
-        </button>
-      ))}
+        {/* All button */}
+        <DateModeButton
+          label="All"
+          onClick={toggleAll}
+          isActive={allSelected}
+          debugMode={debugMode}
+        />
+        
+        {/* Day buttons */}
+        {weekdays.map(day => (
+          <DateModeButton
+            key={day.id}
+            label={day.label}
+            onClick={() => toggleDay(day.id)}
+            isActive={selected.includes(day.id)}
+            debugMode={debugMode}
+          />
+        ))}
+      </div>
     </div>
   );
 }

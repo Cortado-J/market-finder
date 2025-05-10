@@ -100,7 +100,7 @@ body, html {
 /* Ensure the container doesn't get cut off on iOS */
 @supports (-webkit-touch-callout: none) {
   .date-scroll-container {
-    padding-bottom: 1rem;
+    padding-bottom: 0.75rem; /* Match non-iOS pb-3 for initial symmetry */
   }
 }
 
@@ -113,7 +113,6 @@ body, html {
   -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
   scrollbar-width: none; /* Hide scrollbar in Firefox */
   -ms-overflow-style: none; /* Hide scrollbar in IE/Edge */
-  margin-bottom: 0.5rem;
   /* Prevent content wrapping */
   white-space: nowrap;
   /* Display mode that works consistently */
@@ -167,7 +166,7 @@ body, html {
   margin-right: 0.5rem; /* Slightly more margin for better spacing */
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  background-color: white;
+  background-color: #f0f7ff; /* Changed from white to light blue */
   font-size: 0.85rem;
   /* Fixed width to ensure consistency across devices */
   min-width: 3.2rem;
@@ -194,7 +193,7 @@ body, html {
 
 .date-button .day-name {
   font-weight: 600;
-  margin-bottom: 0.15rem;
+  /* margin-bottom: 0.15rem; */ /* Removed for better centering */
   font-size: 0.8rem;
 }
 

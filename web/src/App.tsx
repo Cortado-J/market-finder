@@ -131,6 +131,7 @@ function App() {
             onDateFilterChange={setCurrentDateFilter}
             selectedWeekdays={selectedWeekdays}
             onWeekdaysChange={setSelectedWeekdays}
+            debugMode={debugMode}
           />
           {/* This div is meant to take the rest of the space */}
           <div style={{ flexGrow: 1, position: 'relative' }}>

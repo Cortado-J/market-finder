@@ -8,6 +8,7 @@ interface DateWeekControlsProps {
   onDateFilterChange: (filter: DateFilter) => void;
   selectedWeekdays: Weekday[];
   onWeekdaysChange: (days: Weekday[]) => void;
+  debugMode: boolean;
 }
 
 export function DateWeekControls({
@@ -16,20 +17,38 @@ export function DateWeekControls({
   onDateFilterChange,
   selectedWeekdays,
   onWeekdaysChange,
+  debugMode,
 }: DateWeekControlsProps) {
+  const mainStyle = debugMode ? { border: '2px dashed red', boxSizing: 'border-box' as 'border-box' } : {};
+  const soonContainerStyle = debugMode ? { border: '2px solid limegreen', boxSizing: 'border-box' as 'border-box' } : {};
+  const weekContainerStyle = debugMode ? { border: '2px solid blue', boxSizing: 'border-box' as 'border-box' } : {};
+
   return (
-    <div className="z-30 bg-white border-b border-gray-200">
+    <div 
+      className="z-30 bg-white border-b border-gray-200 overflow-hidden"
+      style={mainStyle}
+    >
       {currentWhenMode === 'soon' && (
-        <DateSelector 
-          currentDateFilter={currentDateFilter}
-          onDateFilterChange={onDateFilterChange}
-        />
+        <div 
+          className="date-scroll-container px-4 pt-3 pb-3"
+          style={soonContainerStyle}
+        >
+          <DateSelector 
+            currentDateFilter={currentDateFilter}
+            onDateFilterChange={onDateFilterChange}
+            debugMode={debugMode}
+          />
+        </div>
       )}
       {currentWhenMode === 'week' && (
-        <div className="weekday-controls-container px-4 pt-2">
+        <div 
+          className="date-scroll-container px-4 pt-3 pb-3"
+          style={weekContainerStyle}
+        >
           <WeekdaySelector 
             selectedDays={selectedWeekdays}
             onChange={onWeekdaysChange}
+            debugMode={debugMode}
           />
         </div>
       )}
