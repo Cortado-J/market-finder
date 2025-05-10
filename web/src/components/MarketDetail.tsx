@@ -106,7 +106,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     <div 
       className="shadow-sm text-blue-900 mb-[0.5rem]" 
       style={{
-        paddingTop: '2px', 
+        paddingTop: '0px', 
         paddingLeft: '12px', 
         paddingRight: '12px', 
         paddingBottom: '12px', 
@@ -115,7 +115,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         ...(cardDebugMode && { border: '2px dashed hotpink', boxSizing: 'border-box' }) 
       }}
     >
-      <div className="flex items-center mb-1">
+      <div className="flex items-center mb-0">
         <span className="text-lg mr-1" aria-hidden="true">{icon}</span>
         <h2 className="text-lg font-semibold text-blue-900">{title}</h2>
       </div>
@@ -182,8 +182,8 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           {(addressWithoutPostcode || postcode) && (
             <div>
               <h3 className="text-sm font-bold mt-0 mb-px">Address</h3>
-              {addressWithoutPostcode && <p className="text-sm text-gray-700 leading-tight my-0">{addressWithoutPostcode}</p>}
-              {postcode && <p className="text-sm text-blue-800 leading-tight my-0">{postcode}</p>}
+              {addressWithoutPostcode && <p className="text-sm text-gray-700 leading-tight mt-0 mb-0">{addressWithoutPostcode}</p>}
+              {postcode && <p className="text-sm text-blue-800 leading-tight mt-0 mb-0">{postcode}</p>}
             </div>
           )}
           
@@ -227,7 +227,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           {market.opening_hours && (
             <div>
               <h3 className="text-sm font-bold mt-0 mb-px">Opening Hours</h3>
-              <p className="text-sm text-gray-700 leading-tight my-0">{humanizeOpeningHours(market.opening_hours)}</p>
+              <p className="text-sm text-gray-700 leading-tight mt-0 mb-0">{humanizeOpeningHours(market.opening_hours)}</p>
             </div>
           )}
           
@@ -273,7 +273,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           {market.description && (
             <div>
               <h3 className="text-sm font-bold mt-0 mb-px">Description</h3>
-              <p className="text-sm text-gray-700 leading-tight my-0">{market.description}</p>
+              <p className="text-sm text-gray-700 leading-tight mt-0 mb-0">{market.description}</p>
             </div>
           )}
           
