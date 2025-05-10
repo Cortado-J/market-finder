@@ -103,8 +103,12 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
   // Section styling helper
   const SectionCard = ({ title, icon, children }: { title: string, icon: string, children: React.ReactNode }) => (
     <div 
-      className="mb-1 rounded-lg shadow-sm bg-blue-50" 
-      style={{ padding: '6px 10px' }}
+      className="mb-1 shadow-sm text-blue-900" 
+      style={{ 
+        padding: '8px 12px', 
+        backgroundColor: '#bfdbfe', 
+        borderRadius: '0.5rem' 
+      }}
     >
       <div className="flex items-center">
         <span className="text-lg mr-1" aria-hidden="true">{icon}</span>
@@ -127,19 +131,37 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
           ← Back to list
         </button>
         {/* Market name - moved to header, font size reduced */}
-        <h2 className="text-lg font-bold text-blue-900 text-center">{market.name}</h2>
+        <div 
+          className="mb-2 shadow-sm" 
+          style={{
+            backgroundColor: '#bfdbfe',
+            padding: '8px 12px',
+            borderRadius: '0.5rem',
+            textAlign: 'center'
+          }}
+        >
+          <h2 className="text-lg font-bold text-blue-900">{market.name}</h2>
+        </div>
       </div>
 
       {/* Scrollable Content Area */}
       <div className="flex-grow overflow-y-auto py-1">
         {/* Market image - now part of scrollable content */}
         {imageUrl && (
-          <div className="rounded-lg shadow-sm bg-blue-50 p-2 mb-1"> 
-            <div className="rounded-lg overflow-hidden">
+          <div 
+            className="shadow-sm mb-1" 
+            style={{
+              padding: '8px', // p-2 equivalent
+              backgroundColor: '#bfdbfe',
+              borderRadius: '0.5rem',
+              overflow: 'hidden'
+            }}
+          >
+            <div className="rounded-lg overflow-hidden"> {/* Existing inner div, keep its rounding & overflow for nested effect if any */}
               <img
                 src={imageUrl}
                 alt={`${market.name}`}
-                className="w-full h-auto object-cover"
+                className="w-full h-auto object-cover" // Image itself doesn't need rounding if container clips
                 onError={(e) => {
                   // Hide the image on error
                   (e.target as HTMLImageElement).style.display = 'none';
