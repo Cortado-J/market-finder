@@ -111,7 +111,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     return (
       <div 
         className={`shadow-sm text-blue-900 ${isDebugMode ? 'debug-section' : ''} mb-[0.5rem]`}
-        style={{ paddingTop: '2px', paddingLeft: '12px', paddingRight: '12px', paddingBottom: '2px', backgroundColor: '#e0f2fe', borderRadius: '0.5rem' }} 
+        style={{ paddingTop: '8px', paddingLeft: '12px', paddingRight: '12px', paddingBottom: '2px', backgroundColor: '#e0f2fe', borderRadius: '0.5rem' }} 
       >
         <div className="flex items-center mb-0"> {/* This div wraps the icon and H2 title */}
           {icon && <span className="text-lg mr-1" aria-hidden="true">{icon}</span>}
@@ -142,6 +142,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
   const SubsectionWrapper: React.FC<SubsectionWrapperProps> = ({ children, isDebugMode, className }) => {
     const style: CSSProperties = {
       paddingTop: '8px',
+      paddingBottom: '8px',
     };
     if (isDebugMode) {
       style.border = '1px dashed blue';
@@ -164,9 +165,9 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
 
   const DetailItem: React.FC<DetailItemProps> = ({ title, children, isDebugMode }) => {
     const headingStyle: CSSProperties = {
-      // Margin and line-height will be controlled by Tailwind className
       padding: '0px',
-      fontWeight: 'bold', // Ensure boldness
+      fontWeight: 'bold',
+      marginBottom: '4px', // Force a noticeable bottom margin via inline style
     };
     if (isDebugMode) {
       headingStyle.border = '1px dashed green';
@@ -178,7 +179,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         <div
           role="heading"
           aria-level={3}
-          className="text-sm font-bold leading-none mt-2 mb-0 p-0" // font-bold class is still good for semantics
+          className="text-sm font-bold leading-none mt-2 mb-0 p-0" // Reverted to mb-0 as inline style handles it
           style={headingStyle}
         >
           {title}
@@ -197,17 +198,18 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
   }
 
   const DetailText: React.FC<DetailTextProps> = ({ children, isDebugMode, textColorClassName = "text-gray-700", key }) => {
-    const pStyle: CSSProperties = {};
+    const elementStyle: CSSProperties = {}; // Renamed for clarity, applies to div
     if (isDebugMode) {
-      pStyle.border = '1px dashed orange';
-      pStyle.boxSizing = 'border-box';
+      elementStyle.border = '1px dashed orange';
+      elementStyle.boxSizing = 'border-box';
     }
-    // mt-1 adds 4px top margin, p-0 ensures no extra padding from the <p> itself
-    const classNames = `text-sm leading-none mt-1 mb-0 p-0 ${textColorClassName}`;
+    // mt-1 adds 4px top margin, p-0 ensures no extra padding from the div itself
+    // Changed leading-none to leading-normal for better readability of wrapped text
+    const classNames = `text-sm leading-normal mt-1 mb-0 p-0 ${textColorClassName}`;
     return (
-      <p key={key} className={classNames} style={pStyle}>
+      <div key={key} className={classNames} style={elementStyle}>
         {children}
-      </p>
+      </div>
     );
   };
 
@@ -266,7 +268,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         )}
         
         {/* WHERE section */}
-        <SectionCard title="WHERE" icon="🧭" isDebugMode={isDebugMode}>
+        <SectionCard title="Where" icon="🧭" isDebugMode={isDebugMode}>
           {(addressWithoutPostcode || postcode) && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
               <DetailItem title="Address" isDebugMode={isDebugMode}>
@@ -321,7 +323,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         </SectionCard>
         
         {/* WHEN section */}
-        <SectionCard title="WHEN" icon="🕒" isDebugMode={isDebugMode}>
+        <SectionCard title="When" icon="🕒" isDebugMode={isDebugMode}>
           {market.opening_hours && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
               <DetailItem title="Opening Hours" isDebugMode={isDebugMode}>
@@ -377,7 +379,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         </SectionCard>
         
         {/* WHAT section */}
-        <SectionCard title="WHAT" icon="🛍️" isDebugMode={isDebugMode}>
+        <SectionCard title="What" icon="🛍️" isDebugMode={isDebugMode}>
           {/* Website URL */}
           {market.website_url && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
