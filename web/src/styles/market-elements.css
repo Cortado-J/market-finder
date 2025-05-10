@@ -1,0 +1,71 @@
+/* Market item styling */
+
+.market-image {
+  width: 7rem !important;
+  height: 7rem !important; /* Corrected typo from '7 rem' */
+  max-width: 7rem !important;
+  max-height: 7rem !important;
+  min-width: 7rem !important;
+  min-height: 7rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.market-item {
+  background-color: #dbeafe; /* light blue (blue-100) */
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem; /* Reduced padding */
+  margin-bottom: 0.5rem; /* Reduced margin */
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+  line-height: 1.2; /* Tighter line height */
+  color: #1e3a8a; /* dark blue text (blue-900) */
+}
+
+/* Ensure all text in market items has proper contrast */
+.market-item p, .market-item span {
+  color: #1e3a8a; /* dark blue text (blue-900) */
+}
+
+.market-item:hover {
+  background-color: #bfdbfe; /* slightly darker blue (blue-200) */
+}
+
+.market-item.selected {
+  background-color: #93c5fd; /* medium blue (blue-300) */
+  border: 1px solid #3b82f6; /* blue-500 border */
+}
+
+.market-name {
+  margin: 0 0.75rem 0 0; /* Remove default h3 margins, keep right spacing */
+  font-size: 1.1rem; /* Smaller font */
+  font-weight: 600;
+  line-height: 1.2; /* Tighter line-height for proper vertical alignment */
+}
+
+.market-distance {
+  font-size: 1rem; /* Smaller font */
+  color: #4b5563; /* gray-600 */
+  margin-left: 0.5rem; /* Reduced margin */
+}
+
+/* Compact market details */
+.market-item p {
+  margin: 0.2rem 0; /* Minimal vertical margins */
+  line-height: 1.4;
+}
+
+.market-item div + div {
+  margin-top: 0.25rem; /* Minimal spacing between sections */
+}
+
+/* Market list animations */
+.market-list-item {
+  transition: all 0.2s;
+}
+
+.market-list-item:hover {
+  transform: translateX(4px);
+}
