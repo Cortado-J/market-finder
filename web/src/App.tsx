@@ -13,7 +13,7 @@ import { MainContent } from './components/MainContent';
 import { format, addDays } from 'date-fns';
 // calculateDistance, getCoordinates are not directly used here anymore, but might be by child components
 import { useMarketData } from './hooks/useMarketData'; // Import the new hook
-import { BuildInfo } from './main'; // Import BuildInfo
+import { BuildInfo } from './components/BuildInfo'; // Import BuildInfo from its new location
 
 // Default location coordinates for BS7 8LZ
 const defaultLocation: [number, number] = [-2.5973, 51.4847];
@@ -109,12 +109,14 @@ function App() {
   return (
     <div className="app" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       {viewMode === 'detail' ? (
-        <MarketDetail 
-          market={selectedMarket!} 
-          onBack={handleBackToList} 
-          isDebugMode={debugMode}
-          // Assuming MarketDetail is structured to fill available space, or add style={{ flexGrow: 1 }}
-        />
+        <div className="max-w-2xl mx-auto w-full h-full"> 
+          <MarketDetail 
+            market={selectedMarket!} 
+            onBack={handleBackToList} 
+            isDebugMode={debugMode}
+            marketNextOpening={selectedMarketNextOpening} 
+          />
+        </div>
       ) : (
         // This div groups Header, DateControls, and MainContent area
         // It's a flex column and grows to fill space within App's flex column.

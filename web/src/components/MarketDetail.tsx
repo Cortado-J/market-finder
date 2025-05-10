@@ -14,6 +14,12 @@ interface MarketDetailProps {
 }
 
 export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = false }: MarketDetailProps) {
+  // Guard clause: If market data is not available, don't render.
+  if (!market) {
+    console.error("MarketDetail rendered without a market object.");
+    return null; 
+  }
+
   // State to detect if user is on a mobile device
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   
@@ -71,7 +77,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     const fetchNextOpenings = async () => {
       try {
         const today = new Date();
-        const nextMonth = addDays(today, 30); // Look ahead 30 days
+        const nextMonth = addDays(today, 90); // Look ahead 90 days
         
         // Get all upcoming openings for this specific market
         const openings = await marketOpeningsBetween(today, nextMonth);
@@ -87,14 +93,52 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     fetchNextOpenings();
   }, [market]);
   
-  // Extract postcode from address if available
-  const postcode = market.address ? 
-    market.address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}/i)?.[0] : null;
-  
-  // Format address without postcode if we extracted it
-  const addressWithoutPostcode = market.address && postcode ? 
-    market.address.replace(postcode, '').trim().replace(/,\s*$/, '') : 
-    market.address;
+  // Construct the display address
+  let displayAddress = market.address || '';
+  const marketProvidedPostcode = (market as any).postcode as string | undefined;
+
+  console.log('Market Detail - Market Object:', JSON.parse(JSON.stringify(market))); // Log the whole market object
+  console.log('Market Detail - marketProvidedPostcode:', marketProvidedPostcode);
+
+  if (marketProvidedPostcode && typeof marketProvidedPostcode === 'string' && marketProvidedPostcode.trim() !== '') {
+      const trimmedMarketAddress = (market.address || '').trim();
+      const trimmedMarketProvidedPostcode = marketProvidedPostcode.trim();
+      console.log('Market Detail - trimmedMarketAddress:', trimmedMarketAddress);
+      console.log('Market Detail - trimmedMarketProvidedPostcode:', trimmedMarketProvidedPostcode);
+
+      // More robust check: see if the postcode (when words are normalized) is at the end of the address
+      const addressWords = trimmedMarketAddress.toLowerCase().split(/[\s,]+/);
+      const postcodeWords = trimmedMarketProvidedPostcode.toLowerCase().split(/[\s,]+/);
+      console.log('Market Detail - addressWords:', addressWords);
+      console.log('Market Detail - postcodeWords:', postcodeWords);
+
+      let isSuffix = true;
+      if (postcodeWords.length === 0) { // an empty postcode string is not a suffix to be concerned about
+          isSuffix = true; // effectively, treat as already included or not applicable
+      } else if (postcodeWords.length > addressWords.length) {
+          isSuffix = false;
+      } else {
+          for (let i = 0; i < postcodeWords.length; i++) {
+              if (addressWords[addressWords.length - postcodeWords.length + i] !== postcodeWords[i]) {
+                  isSuffix = false;
+                  break;
+              }
+          }
+      }
+      console.log('Market Detail - isSuffix:', isSuffix);
+
+      if (!isSuffix) {
+          if (trimmedMarketAddress.endsWith(',')) {
+              displayAddress = `${trimmedMarketAddress} ${trimmedMarketProvidedPostcode}`;
+          } else if (trimmedMarketAddress.length > 0) {
+              displayAddress = `${trimmedMarketAddress}, ${trimmedMarketProvidedPostcode}`;
+          } else {
+              displayAddress = trimmedMarketProvidedPostcode;
+          }
+      }
+  }
+
+  console.log('Market Detail - final displayAddress:', displayAddress);
 
   // Function to capitalize each word in a string
   const capitalizeWords = (str: string) => {
@@ -218,21 +262,37 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     );
   };
 
+  const HEADER_HEIGHT = '60px'; // Define header height as a constant
+
   return (
-    // Main container for MarketDetail - flex column to allow fixed header and scrollable content
-    <div className="market-detail flex flex-col h-full max-w-2xl mx-auto bg-white" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-      {/* Fixed Header Area - Reduced Padding */}
-      <div className="pt-1 pb-1 border-b border-gray-200 bg-white">
-        {/* Market name & Back Button in a styled box */}
+    // Main viewport container: Relative positioning, 100vh, overflow hidden
+    <div 
+      className="market-detail-viewport bg-white" 
+      style={{
+        position: 'relative',
+        height: '100vh', // Changed from 100% to 100vh to fill viewport
+        overflow: 'hidden'
+        // Removed backgroundColor: 'magenta'
+      }}
+    >
+      {/* Absolutely Positioned Header */}
+      <div 
+        className="market-detail-header bg-white border-b border-gray-200"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: HEADER_HEIGHT,
+          zIndex: 10,
+          paddingLeft: '16px', // Apply side padding directly to header
+          paddingRight: '16px'
+        }}
+      >
         <div 
-          className="mb-1 shadow-sm flex items-center gap-2"
-          style={{
-            backgroundColor: '#bfdbfe',
-            padding: '2px 12px',
-            borderRadius: '0.5rem'
-          }}
+          className="flex items-center justify-between h-full" // Ensure inner div takes full header height
         >
-          {/* Back button - reverted to less-than character */}
+          {/* Back button */}
           <button 
             onClick={onBack}
             className="flex items-center justify-center w-[3.15rem] h-[3.2rem] rounded-lg border border-gray-300 bg-blue-50 text-blue-900 shadow-sm hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
@@ -240,13 +300,31 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           >
             <span className="text-6xl font-bold">&lt;</span>
           </button>
-          {/* Market name - takes remaining space and centers text */}
-          <h2 className="text-lg font-bold text-blue-900 flex-grow text-center">{market.name}</h2>
+          {/* Market name */}
+          <h1 className="text-lg font-bold text-center text-blue-900 truncate" style={{ flexGrow: 1 }}>
+            {market.name} 
+          </h1>
+          {/* Spacer to balance the back button */}
+          <div style={{ width: '3.15rem' }} /> 
         </div>
       </div>
 
-      {/* Scrollable Content Area */}
-      <div className="flex-grow overflow-y-auto py-1">
+      {/* Absolutely Positioned Scrollable Content Area */}
+      <div 
+        className="market-detail-scroll-content hide-scrollbar"
+        style={{
+          position: 'absolute',
+          top: HEADER_HEIGHT,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          overflowY: 'auto',
+          paddingTop: '8px', // Space below the header before content starts
+          paddingBottom: '16px',
+          paddingLeft: '16px', // Apply side padding to content area as well
+          paddingRight: '16px'
+        }}
+      >
         {/* Market image - now part of scrollable content */}
         {imageUrl && (
           <div 
@@ -274,19 +352,12 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         
         {/* WHERE section */}
         <SectionCard title="Where" isDebugMode={isDebugMode}>
-          {(addressWithoutPostcode || postcode) && (
+          {displayAddress.trim() && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
               <DetailItem title="Address" isDebugMode={isDebugMode}>
-                {addressWithoutPostcode && (
-                  <DetailText isDebugMode={isDebugMode}>
-                    {addressWithoutPostcode}
-                  </DetailText>
-                )}
-                {postcode && (
-                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-blue-900">
-                    {postcode}
-                  </DetailText>
-                )}
+                <DetailText isDebugMode={isDebugMode}>
+                  {displayAddress}
+                </DetailText>
               </DetailItem>
             </SubsectionWrapper>
           )}
