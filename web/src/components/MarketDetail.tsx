@@ -106,16 +106,16 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     <div 
       className="shadow-sm text-blue-900 mb-[0.5rem]" 
       style={{
-        paddingTop: '8px', 
+        paddingTop: '2px', 
         paddingLeft: '12px', 
         paddingRight: '12px', 
-        paddingBottom: '24px', 
+        paddingBottom: '12px', 
         backgroundColor: '#bfdbfe', 
         borderRadius: '0.5rem',
         ...(cardDebugMode && { border: '2px dashed hotpink', boxSizing: 'border-box' }) 
       }}
     >
-      <div className="flex items-center">
+      <div className="flex items-center mb-1">
         <span className="text-lg mr-1" aria-hidden="true">{icon}</span>
         <h2 className="text-lg font-semibold text-blue-900">{title}</h2>
       </div>
@@ -181,15 +181,15 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         <SectionCard title="WHERE" icon="🧭" isDebugMode={isDebugMode}>
           {(addressWithoutPostcode || postcode) && (
             <div>
-              <h3 className="text-sm font-bold">Address</h3>
-              {addressWithoutPostcode && <p className="text-sm text-gray-700 leading-none">{addressWithoutPostcode}</p>}
-              {postcode && <p className="text-sm text-blue-800 leading-none">{postcode}</p>}
+              <h3 className="text-sm font-bold mt-0 mb-px">Address</h3>
+              {addressWithoutPostcode && <p className="text-sm text-gray-700 leading-tight my-0">{addressWithoutPostcode}</p>}
+              {postcode && <p className="text-sm text-blue-800 leading-tight my-0">{postcode}</p>}
             </div>
           )}
           
           {(directionsUrls.google || directionsUrls.apple) && (
             <div className="mt-0.5">
-              <h3 className="text-sm font-bold">Directions</h3>
+              <h3 className="text-sm font-bold mt-0 mb-px">Directions</h3>
               <div className="flex gap-2">
                 {directionsUrls.google && (
                   <button 
@@ -226,17 +226,17 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         <SectionCard title="WHEN" icon="🕒" isDebugMode={isDebugMode}>
           {market.opening_hours && (
             <div>
-              <h3 className="text-sm font-bold">Opening Hours</h3>
-              <p className="text-sm text-gray-700 leading-none">{humanizeOpeningHours(market.opening_hours)}</p>
+              <h3 className="text-sm font-bold mt-0 mb-px">Opening Hours</h3>
+              <p className="text-sm text-gray-700 leading-tight my-0">{humanizeOpeningHours(market.opening_hours)}</p>
             </div>
           )}
           
-          <div className="mt-0.5">
-            <h3 className="text-sm font-bold">Next Dates</h3>
+          <div className="mt-1"> 
+            <h3 className="text-sm font-bold mt-0 mb-px">Next Dates</h3>
             {nextThreeOpenings.length > 0 ? (
               <div className="space-y-1">
                 {nextThreeOpenings.map((opening, index) => (
-                  <div key={index} className="rounded-md leading-none py-0.5 px-1 text-sm text-gray-700" 
+                  <div key={index} className="rounded-md leading-tight py-0.5 px-1 text-sm text-gray-700" 
                        style={{ backgroundColor: '#edf5ff' }}>
                     {opening.startTime && opening.endTime ? (
                       <span>{format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}</span>
@@ -257,12 +257,12 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           {/* Website URL */}
           {market.website_url && (
             <div>
-              <h3 className="text-sm font-bold">Website</h3>
+              <h3 className="text-sm font-bold mt-0 mb-px">Website URL</h3>
               <a 
                 href={market.website_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline break-words leading-tight block text-sm"
+                className="text-blue-600 hover:underline text-sm break-all"
               >
                 {market.website_url}
               </a>
@@ -272,28 +272,28 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           {/* Description */}
           {market.description && (
             <div>
-              <h3 className="text-sm font-bold">Description</h3>
-              <p className="text-sm text-gray-700 leading-none">{market.description}</p>
+              <h3 className="text-sm font-bold mt-0 mb-px">Description</h3>
+              <p className="text-sm text-gray-700 leading-tight my-0">{market.description}</p>
             </div>
           )}
           
           {/* Categories */}
           {market.categories && market.categories.length > 0 && (
-            <div className="mt-0.5">
-              <h3 className="text-sm font-bold">Categories</h3>
-              <ul className="list-none p-0 m-0 space-y-0">
-                {market.categories.map(cat => (
-                  <li key={cat} className="flex items-center text-sm text-gray-700 leading-snug">
+            <div className={market.website_url || market.description ? "mt-2" : ""}> 
+              <h3 className="text-sm font-bold mt-0 mb-px">Categories</h3>
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {market.categories.map((category, index) => (
+                  <div key={index} className="flex items-center text-sm text-gray-700 leading-tight">
                     <img
-                      src={getCategoryIconUrl(cat)}
+                      src={getCategoryIconUrl(category)}
                       alt=""
                       className="w-[16px] h-[16px] mr-1"
                       onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
-                    <span>{capitalizeWords(cat)}</span>
-                  </li>
+                    <span>{capitalizeWords(category)}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </SectionCard>
