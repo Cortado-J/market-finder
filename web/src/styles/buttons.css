@@ -43,14 +43,13 @@
   padding: 0.25rem 0;
   scroll-snap-align: start;
   flex-shrink: 0;
-  margin-right: 0.5rem; /* Slightly more margin for better spacing */
   border-radius: 8px;
   border: 1px solid #e0e0e0;
   background-color: #f0f7ff; /* Changed from white to light blue */
   font-size: 0.85rem;
   /* Fixed width to ensure consistency across devices */
   min-width: 3.2rem;
-  width: 3.5rem; /* Fixed width prevents layout shifts */
+  width: 3.15rem; /* Original was 3.5rem, 10% reduction */
   height: 3.2rem;
   cursor: pointer;
   -webkit-user-select: none;
@@ -58,6 +57,16 @@
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   transition: all 0.2s ease;
   vertical-align: middle; /* Aligns buttons properly in the row */
+  margin-right: 0.35rem; /* New spacing between buttons */
+}
+
+.date-button:last-child {
+  margin-right: 0; /* No margin for the last button */
+}
+
+/* Further narrow date buttons when in week mode */
+.week-mode-active .date-button {
+  width: 2.68rem;
 }
 
 .date-button:active {

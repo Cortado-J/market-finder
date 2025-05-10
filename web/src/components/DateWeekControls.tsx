@@ -42,7 +42,7 @@ export function DateWeekControls({
       )}
       {currentWhenMode === 'week' && (
         <div 
-          className="date-scroll-container px-4 pt-3 pb-3"
+          className="date-scroll-container week-mode-active px-4 pt-3 pb-3"
           style={weekContainerStyle}
         >
           <WeekdaySelector 
