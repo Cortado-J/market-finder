@@ -138,12 +138,12 @@
 /* Target the specific toggle component */
 .when-mode-toggle {
   margin-left: 0 !important;
-  padding-left: 0 !important;
+  /* padding-left will be handled by Tailwind on the component div */
 }
 
 .when-mode-toggle button:first-child {
   margin-left: 0 !important;
-  padding-left: 0.3rem !important; /* Minimal internal padding */
+  /* padding-left will be handled by the .date-button base style for centering */
 }
 
 /* Adjust the spacing between buttons in the mode toggle */

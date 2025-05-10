@@ -18,12 +18,23 @@ export function AppHeader({
   viewMode,
   setViewMode
 }: AppHeaderProps) {
+  const soonWeekToggleContainerStyle: React.CSSProperties = {
+    paddingLeft: '0.5rem',
+    boxSizing: 'border-box',
+  };
+  if (debugMode) {
+    soonWeekToggleContainerStyle.border = '2px solid orange';
+  }
+
   return (
     <header className="z-10 bg-white p-4 border-b border-gray-200">
       {/* Mode toggles */}
       <div className="flex justify-between items-center">
         {/* WHEN toggle: Soon vs Week */}
-        <div className="inline-flex bg-gray-200 rounded p-1">
+        <div 
+          className="inline-flex bg-gray-200 rounded when-mode-toggle" 
+          style={soonWeekToggleContainerStyle}
+        >
           <button
             onClick={() => setCurrentWhenMode('soon')}
             className={`date-button ${currentWhenMode === 'soon' ? 'active' : ''}`}
