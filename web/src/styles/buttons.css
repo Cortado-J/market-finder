@@ -129,3 +129,26 @@
 .toggle-button:hover:not(.active) {
   background-color: #f3f4f6; /* gray-100 */
 }
+
+/* Button row spacing */
+.button-row-gap {
+  margin-bottom: 10px !important;
+}
+
+/* Target the specific toggle component */
+.when-mode-toggle {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+.when-mode-toggle button:first-child {
+  margin-left: 0 !important;
+  padding-left: 0.3rem !important; /* Minimal internal padding */
+}
+
+/* Adjust the spacing between buttons in the mode toggle */
+.space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(0.5rem * var(--tw-space-x-reverse));
+  margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
+}

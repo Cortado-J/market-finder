@@ -1,0 +1,97 @@
+/* iOS scrolling fix */
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.ios-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Button strip - simple horizontal scrolling container */
+.date-buttons-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  width: 100%;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  touch-action: pan-x; /* Enable touch panning */
+  cursor: grab;
+  box-sizing: border-box;
+  z-index: 40;
+}
+
+/* Hide scrollbar for Chrome/Safari/newer Edge */
+.date-buttons-strip::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.date-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ensure the container doesn't get cut off on iOS */
+@supports (-webkit-touch-callout: none) {
+  .date-scroll-container {
+    padding-bottom: 0.75rem; /* Match non-iOS pb-3 for initial symmetry */
+  }
+}
+
+/* Bulletproof date scroll container for cross-device compatibility */
+.date-scroll-container {
+  /* Basic properties */
+  width: 100%;
+  overflow-x: scroll !important; /* Force scrolling behavior */
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar in IE/Edge */
+  /* Prevent content wrapping */
+  white-space: nowrap;
+  /* Display mode that works consistently */
+  display: block !important;
+}
+
+/* Hide scrollbar in Chrome, Safari, and newer versions of Edge */
+.date-scroll-container::-webkit-scrollbar,
+.date-scroll-wrapper::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+  background: transparent !important;
+}
+
+/* For Safari and older WebKit browsers */
+.date-scroll-container::-webkit-scrollbar-thumb,
+.date-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Mobile-friendly horizontal scroll indicators */
+.date-scroll-wrapper {
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Add visual indicator that content is scrollable */
+.date-scroll-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.8));
+  pointer-events: none; /* Don't block touch events */
+}
