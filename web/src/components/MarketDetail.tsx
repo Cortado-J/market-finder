@@ -104,7 +104,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
   // Section styling helper
   const SectionCard = ({ title, icon, children, isDebugMode: cardDebugMode }: { title: string, icon: string, children: React.ReactNode, isDebugMode?: boolean }) => (
     <div 
-      className="shadow-sm text-blue-900 mb-1" 
+      className="shadow-sm text-blue-900 mb-[0.5rem]" 
       style={{
         paddingTop: '8px', 
         paddingLeft: '12px', 
@@ -155,7 +155,7 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
         {/* Market image - now part of scrollable content */}
         {imageUrl && (
           <div 
-            className="shadow-sm mb-1" 
+            className="shadow-sm mb-[0.5rem]" 
             style={{
               padding: '8px', 
               backgroundColor: '#bfdbfe',
