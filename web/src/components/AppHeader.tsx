@@ -27,7 +27,7 @@ export function AppHeader({
   }
 
   return (
-    <header className="z-10 bg-white p-4 border-b border-gray-200">
+    <header className="z-10 bg-white p-4">
       {/* Mode toggles */}
       <div className="flex justify-between items-center">
         {/* WHEN toggle: Soon vs Week */}

@@ -122,7 +122,7 @@ export function MarketDetail({ market, onBack, marketNextOpening }: MarketDetail
         {/* Back button */}
         <button 
           onClick={onBack}
-          className="mb-2 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="nav-action-button mb-2"
         >
           ← Back to list
         </button>

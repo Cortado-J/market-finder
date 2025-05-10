@@ -25,7 +25,7 @@ export function DateWeekControls({
 
   return (
     <div 
-      className="z-30 bg-white border-b border-gray-200 overflow-hidden"
+      className="z-30 bg-white overflow-hidden"
       style={mainStyle}
     >
       {currentWhenMode === 'soon' && (

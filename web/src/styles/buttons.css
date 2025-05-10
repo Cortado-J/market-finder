@@ -147,6 +147,34 @@
 }
 
 /* Adjust the spacing between buttons in the mode toggle */
+.when-mode-toggle button + button {
+  margin-left: 0.25rem; /* Adjust as needed for spacing */
+}
+
+/* New button style for navigation/actions, mimicking date-button visuals */
+.nav-action-button {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.25rem; /* Matches .date-button */
+  background-color: #e2e8f0; /* Tailwind gray-200 */
+  color: #2d3748; /* Tailwind gray-800 */
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  text-align: center;
+  white-space: normal; /* Allow text to wrap, unlike date-button */
+  cursor: pointer;
+  display: inline-block; /* Behaves like a block but flows inline */
+  line-height: 1.2; /* Adjust for better vertical alignment if text wraps or for consistent height feel */
+}
+
+.nav-action-button:hover,
+.nav-action-button:focus {
+  background-color: #4299e1; /* Tailwind blue-500 */
+  color: white;
+  border-color: #2b6cb0; /* Tailwind blue-700 */
+}
+
+/* Adjust the spacing between buttons in the mode toggle */
 .space-x-3 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
