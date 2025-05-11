@@ -23,6 +23,11 @@ export function useMarketData({
   const [marketOpenings, setMarketOpenings] = useState<MarketOpening[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const triggerRefetchMarkets = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     async function fetchMarketsAndOpenings() {
@@ -104,9 +109,13 @@ export function useMarketData({
       }
     }
 
+    // Fetch data initially and whenever dependencies change
     fetchMarketsAndOpenings();
-  }, []); // Initial fetch on mount
 
+    // No cleanup function needed for this effect's current logic
+  }, [currentWhenMode, currentDateFilter, selectedWeekdays, refreshTrigger]); // Added refreshTrigger
+
+  // Filtered markets logic (memoized)
   const filteredMarkets = useMemo(() => {
     if (currentWhenMode === 'soon') {
       const today = new Date();
@@ -144,5 +153,12 @@ export function useMarketData({
     }
   }, [markets, marketOpenings, currentWhenMode, currentDateFilter, selectedWeekdays]);
 
-  return { markets, filteredMarkets, marketOpenings, loading, error };
+  return {
+    markets,
+    filteredMarkets,
+    marketOpenings,
+    loading,
+    error,
+    triggerRefetchMarkets, // Expose the refetch trigger function
+  };
 }

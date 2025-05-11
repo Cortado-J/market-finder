@@ -12,14 +12,16 @@ import { DateWeekControls } from './components/DateWeekControls';
 import { MainContent } from './components/MainContent';
 import { format, addDays } from 'date-fns';
 // calculateDistance, getCoordinates are not directly used here anymore, but might be by child components
+import { supabase } from './utils/supabase'; // Import supabase client
 import { useMarketData } from './hooks/useMarketData'; // Import the new hook
 import { BuildInfo } from './components/BuildInfo'; // Import BuildInfo from its new location
+import { MarketEditForm } from './components/MarketEditForm'; // Import the new form
 
 // Default location coordinates for BS7 8LZ
 const defaultLocation: [number, number] = [-2.5973, 51.4847];
 
 // View mode type
-export type ViewMode = 'list' | 'map' | 'detail';
+export type ViewMode = 'list' | 'map' | 'detail' | 'editDetail';
 
 function App() {
   // States managed by App.tsx directly
@@ -36,7 +38,8 @@ function App() {
     filteredMarkets,
     marketOpenings,
     loading,
-    error
+    error,
+    triggerRefetchMarkets, // Get the refetch trigger
   } = useMarketData({
     currentWhenMode,
     currentDateFilter,
@@ -46,7 +49,7 @@ function App() {
   // State for preserving list scroll position
   const [listScrollPosition, setListScrollPosition] = useState(0);
   // State for preserving previous view mode (list or map)
-  const [previousViewMode, setPreviousViewMode] = useState<'list' | 'map'>('list');
+  const [previousViewMode, setPreviousViewMode] = useState<'list' | 'map' | 'detail'>('list');
   
   const handleMarketSelect = (market: Market | null) => {
     if (market) {
@@ -64,12 +67,12 @@ function App() {
     } else {
       // If null is passed (e.g. deselect from map), go back to previous list/map view
       setSelectedMarket(null);
-      setViewMode(previousViewMode);
+      setViewMode(previousViewMode as 'list' | 'map'); // Ensure it goes to list or map
     }
   };
   
   const handleBackToList = () => {
-    setViewMode(previousViewMode);
+    setViewMode(previousViewMode as 'list' | 'map'); // Ensure it goes to list or map
     if (previousViewMode === 'list') {
       setTimeout(() => {
         const listContainer = document.querySelector('.space-y-4.overflow-y-auto');
@@ -79,7 +82,61 @@ function App() {
       }, 100);
     }
   };
-  
+
+  const handleGoToEditMarket = (market: Market) => {
+    setSelectedMarket(market); // Keep selectedMarket, or use a new marketToEdit state
+    setViewMode('editDetail');
+  };
+
+  const handleCancelEdit = () => {
+    setViewMode('detail'); // Go back to the detail view
+  };
+
+  const handleSaveMarket = async (updatedMarketData: Partial<Market>) => {
+    console.log('Attempting to save market data:', updatedMarketData);
+
+    if (!updatedMarketData.market_id) {
+      console.error('Market ID is missing. Cannot save.');
+      alert('Error: Market ID is missing. Cannot save.');
+      return;
+    }
+
+    const { market_id, ...dataToSave } = updatedMarketData;
+
+    // Ensure no undefined values are sent if the database doesn't like them
+    // Or handle them appropriately (e.g., convert to null)
+    // For now, we assume Supabase handles partial updates gracefully.
+    console.log('Data being sent to Supabase for update:', JSON.stringify(dataToSave)); // Log data being sent
+
+    try {
+      const { error: supabaseError } = await supabase
+        .from('markets')
+        .update(dataToSave)
+        .eq('market_id', market_id);
+
+      if (supabaseError) {
+        console.error('Error updating market:', supabaseError);
+        alert(`Error saving market: ${supabaseError.message}`);
+        return; // Don't proceed if there was an error
+      }
+
+      console.log('Market data saved successfully.');
+      triggerRefetchMarkets(); // Refetch market data
+
+      // Optimistic update of selectedMarket and navigate back
+      if (selectedMarket && market_id === selectedMarket.market_id) {
+        setSelectedMarket(prev => {
+          if (!prev) return null; 
+          return { ...prev, ...dataToSave }; // Use dataToSave which doesn't include market_id directly
+        });
+      }
+      setViewMode('detail'); 
+    } catch (err) {
+      console.error('Unexpected error during save:', err);
+      alert('An unexpected error occurred while saving. Please try again.');
+    }
+  };
+
   // Determine two-letter day code for Soon mode (can stay in App.tsx)
   const selectedDayCode = useMemo(() => {
     if (currentWhenMode !== 'soon') return undefined;
@@ -113,10 +170,18 @@ function App() {
           <MarketDetail 
             market={selectedMarket!} 
             onBack={handleBackToList} 
+            onEdit={handleGoToEditMarket} // Pass the new handler
             isDebugMode={debugMode}
             marketNextOpening={selectedMarketNextOpening} 
           />
         </div>
+      ) : viewMode === 'editDetail' && selectedMarket ? (
+        <MarketEditForm 
+          market={selectedMarket} 
+          onSave={handleSaveMarket} 
+          onCancel={handleCancelEdit}
+          isDebugMode={debugMode}
+        />
       ) : (
         // This div groups Header, DateControls, and MainContent area
         // It's a flex column and grows to fill space within App's flex column.
@@ -126,7 +191,7 @@ function App() {
             setDebugMode={setDebugMode}
             currentWhenMode={currentWhenMode}
             setCurrentWhenMode={setCurrentWhenMode}
-            viewMode={viewMode}
+            viewMode={viewMode as 'list' | 'map'} // Cast to specific type
             setViewMode={(mode) => setViewMode(mode as 'list' | 'map')} 
           />
           <DateWeekControls
@@ -140,7 +205,7 @@ function App() {
           {/* This div is meant to take the rest of the space */}
           <div style={{ flexGrow: 1, position: 'relative' }}>
             <MainContent 
-              viewMode={viewMode}
+              viewMode={viewMode as 'list' | 'map'} // Cast to specific type
               filteredMarkets={filteredMarkets}
               selectedMarket={selectedMarket}
               defaultLocation={defaultLocation}

@@ -9,11 +9,12 @@ import { addDays, format, parseISO } from 'date-fns';
 interface MarketDetailProps {
   market: Market;
   onBack: () => void;
+  onEdit?: (market: Market) => void; // Added onEdit prop
   marketNextOpening?: MarketOpening;
   isDebugMode?: boolean; // Added for debug borders
 }
 
-export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = false }: MarketDetailProps) {
+export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebugMode = false }: MarketDetailProps) {
   // Guard clause: If market data is not available, don't render.
   if (!market) {
     console.error("MarketDetail rendered without a market object.");
@@ -308,8 +309,18 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
           <h1 className="text-lg font-bold text-center text-blue-900 truncate" style={{ flexGrow: 1 }}>
             {market.name} 
           </h1>
-          {/* Spacer to balance the back button */}
-          <div style={{ width: '3.15rem' }} /> 
+          {/* Edit button or Spacer */}
+          {isDebugMode && onEdit ? (
+            <button
+              onClick={() => onEdit(market)}
+              className="flex items-center justify-center w-[3.15rem] h-[3.2rem] rounded-lg border border-gray-300 bg-green-50 text-green-900 shadow-sm hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
+              aria-label="Edit market"
+            >
+              Edit
+            </button>
+          ) : (
+            <div style={{ width: '3.15rem' }} /> /* Original spacer */
+          )}
         </div>
       </div>
 
