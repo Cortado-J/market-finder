@@ -20,6 +20,57 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     return null; 
   }
 
+  // Log the received market object to check for postcode
+  console.log('MarketDetail - Received Market:', JSON.parse(JSON.stringify(market)));
+
+  // Construct the display address
+  let displayAddress = market.address || '';
+  const marketPostcode = market.postcode; // Now correctly typed from Market interface
+
+  console.log('MarketDetail - market.address:', market.address);
+  console.log('MarketDetail - market.postcode (from market object):', marketPostcode);
+
+  if (marketPostcode && typeof marketPostcode === 'string' && marketPostcode.trim() !== '') {
+    const trimmedMarketAddress = (market.address || '').trim().toLowerCase();
+    const trimmedMarketPostcode = marketPostcode.trim().toLowerCase();
+
+    // Check if the postcode (as a whole word/phrase) is already at the end of the address
+    // This handles cases like "Street Name, City, POSTCODE" or "Street Name, City POSTCODE"
+    if (!trimmedMarketAddress.endsWith(trimmedMarketPostcode)) {
+      // Further check to avoid adding if address is just "POSTCODE" but marketPostcode is also "POSTCODE"
+      // Or if address is "Some Road, POSTCODE" and marketPostcode is "POSTCODE"
+      // A simple way is to check if postcode is a substring. If address is short, this might be too aggressive.
+      // A more robust check: split address by comma or space and see if last part matches postcode.
+      const addressParts = trimmedMarketAddress.split(/[\s,]+/);
+      const postcodeParts = trimmedMarketPostcode.split(/[\s,]+/);
+      let suffixMatches = false;
+      if (addressParts.length >= postcodeParts.length) {
+        suffixMatches = true;
+        for (let i = 0; i < postcodeParts.length; i++) {
+          if (addressParts[addressParts.length - postcodeParts.length + i] !== postcodeParts[i]) {
+            suffixMatches = false;
+            break;
+          }
+        }
+      }
+
+      if (!suffixMatches) {
+        if (displayAddress.trim() === '') {
+          displayAddress = marketPostcode; 
+        } else if (displayAddress.trim().endsWith(',')) {
+          displayAddress = `${displayAddress.trim()} ${marketPostcode}`;
+        } else {
+          displayAddress = `${displayAddress.trim()}, ${marketPostcode}`;
+        }
+      }
+    }
+  } else if (!market.address && marketPostcode && typeof marketPostcode === 'string' && marketPostcode.trim() !== '') {
+    // If address is empty but postcode exists (and is a non-empty string), use postcode
+    displayAddress = marketPostcode;
+  }
+  
+  console.log('MarketDetail - Final displayAddress:', displayAddress);
+
   // State to detect if user is on a mobile device
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   
@@ -93,53 +144,6 @@ export function MarketDetail({ market, onBack, marketNextOpening, isDebugMode = 
     fetchNextOpenings();
   }, [market]);
   
-  // Construct the display address
-  let displayAddress = market.address || '';
-  const marketProvidedPostcode = (market as any).postcode as string | undefined;
-
-  console.log('Market Detail - Market Object:', JSON.parse(JSON.stringify(market))); // Log the whole market object
-  console.log('Market Detail - marketProvidedPostcode:', marketProvidedPostcode);
-
-  if (marketProvidedPostcode && typeof marketProvidedPostcode === 'string' && marketProvidedPostcode.trim() !== '') {
-      const trimmedMarketAddress = (market.address || '').trim();
-      const trimmedMarketProvidedPostcode = marketProvidedPostcode.trim();
-      console.log('Market Detail - trimmedMarketAddress:', trimmedMarketAddress);
-      console.log('Market Detail - trimmedMarketProvidedPostcode:', trimmedMarketProvidedPostcode);
-
-      // More robust check: see if the postcode (when words are normalized) is at the end of the address
-      const addressWords = trimmedMarketAddress.toLowerCase().split(/[\s,]+/);
-      const postcodeWords = trimmedMarketProvidedPostcode.toLowerCase().split(/[\s,]+/);
-      console.log('Market Detail - addressWords:', addressWords);
-      console.log('Market Detail - postcodeWords:', postcodeWords);
-
-      let isSuffix = true;
-      if (postcodeWords.length === 0) { // an empty postcode string is not a suffix to be concerned about
-          isSuffix = true; // effectively, treat as already included or not applicable
-      } else if (postcodeWords.length > addressWords.length) {
-          isSuffix = false;
-      } else {
-          for (let i = 0; i < postcodeWords.length; i++) {
-              if (addressWords[addressWords.length - postcodeWords.length + i] !== postcodeWords[i]) {
-                  isSuffix = false;
-                  break;
-              }
-          }
-      }
-      console.log('Market Detail - isSuffix:', isSuffix);
-
-      if (!isSuffix) {
-          if (trimmedMarketAddress.endsWith(',')) {
-              displayAddress = `${trimmedMarketAddress} ${trimmedMarketProvidedPostcode}`;
-          } else if (trimmedMarketAddress.length > 0) {
-              displayAddress = `${trimmedMarketAddress}, ${trimmedMarketProvidedPostcode}`;
-          } else {
-              displayAddress = trimmedMarketProvidedPostcode;
-          }
-      }
-  }
-
-  console.log('Market Detail - final displayAddress:', displayAddress);
-
   // Function to capitalize each word in a string
   const capitalizeWords = (str: string) => {
     return str.replace(/\b\w/g, char => char.toUpperCase());

@@ -31,12 +31,13 @@ export function useMarketData({
         // Fetch raw market data (for opening_hours, market_ref, categories)
         const { data: rawData, error: rawError } = await supabase
           .from('markets')
-          .select('market_id, name, opening_hours, market_ref, categories');
+          .select('market_id, name, opening_hours, market_ref, categories, postcode');
         if (rawError) throw rawError;
 
         const openingHoursMap: { [key: number]: string } = {};
         const marketRefMap: { [key: number]: string } = {};
         const categoriesMap: { [key: number]: string[] } = {};
+        const postcodeMap: { [key: number]: string } = {};
 
         rawData?.forEach((market: any) => {
           openingHoursMap[market.market_id] = market.opening_hours;
@@ -45,6 +46,9 @@ export function useMarketData({
             marketRefMap[market.market_id] = cleanRef;
           }
           categoriesMap[market.market_id] = market.categories || [];
+          if (market.postcode) {
+            postcodeMap[market.market_id] = market.postcode;
+          }
         });
 
         // Fetch market data with locations from RPC
@@ -79,6 +83,7 @@ export function useMarketData({
             market_ref: marketRef,
             imageUrl: getMarketImageUrl(marketRef || ''),
             categories,
+            postcode: postcodeMap[market.market_id] || null,
             location: {
               type: 'Point',
               coordinates,

@@ -16,4 +16,5 @@ export interface Market {
   phone?: string | null
   email?: string | null
   more_info?: string | null
+  postcode?: string | null // Added postcode field
 }
