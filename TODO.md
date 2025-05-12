@@ -14,6 +14,9 @@
 
 ## Active Development Tasks
 
+### Publishing
+- [ ] Use Netlify auto-build
+
 ### Landing Page (New Screen)
 - [ ] Create initial landing page layout
 - [ ] Add option to choose search by location (WHERE)
