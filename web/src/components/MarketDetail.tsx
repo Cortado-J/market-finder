@@ -117,11 +117,16 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
     } else {
       // Fallback to address if coordinates aren't available
       const address = market.address ? encodeURIComponent(market.address) : null;
+      const postcode = market.postcode ? encodeURIComponent(market.postcode) : null;
+      let addressAndPostcode = address;
+      if (postcode) {
+        addressAndPostcode = `${address}, ${postcode}`;
+      }
       
-      if (address) {
+      if (addressAndPostcode) {
         setDirectionsUrls({
-          google: `https://www.google.com/maps/dir/?api=1&destination=${address}`,
-          apple: `https://maps.apple.com/?daddr=${address}`
+          google: `https://www.google.com/maps/dir/?api=1&destination=${addressAndPostcode}`,
+          apple: `https://maps.apple.com/?daddr=${addressAndPostcode}`
         });
       } else {
         setDirectionsUrls({ google: null, apple: null });
@@ -533,55 +538,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
               </DetailItem>
             </SubsectionWrapper>
           )}
-        </SectionCard>
-        
-        {/* CONTACT section (conditionally rendered) */}
-        {(market.contact_name || market.phone || market.email) && (
-          <SectionCard title="CONTACT" isDebugMode={isDebugMode}>
-            {market.contact_name && (
-              <SubsectionWrapper className="mb-0.5" isDebugMode={isDebugMode}>
-                <DetailItem title="Contact Name" isDebugMode={isDebugMode}>
-                  <DetailText isDebugMode={isDebugMode}>
-                    {market.contact_name}
-                  </DetailText>
-                </DetailItem>
-              </SubsectionWrapper>
-            )}
-            {market.phone && (
-              <SubsectionWrapper className="mb-0.5" isDebugMode={isDebugMode}>
-                <DetailItem title="Phone" isDebugMode={isDebugMode}>
-                  <DetailText isDebugMode={isDebugMode}>
-                    {market.phone}
-                  </DetailText>
-                </DetailItem>
-              </SubsectionWrapper>
-            )}
-            {market.email && (
-              <SubsectionWrapper isDebugMode={isDebugMode}>
-                <DetailItem title="Email" isDebugMode={isDebugMode}>
-                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-blue-900 hover:underline">
-                    <a href={`mailto:${market.email}`}>
-                      {market.email}
-                    </a>
-                  </DetailText>
-                </DetailItem>
-              </SubsectionWrapper>
-            )}
-          </SectionCard>
-        )}
-        
-        {/* MORE INFO section (conditionally rendered) */}
-        {market.more_info && (
-          <SectionCard title="MORE INFO" isDebugMode={isDebugMode}>
-            <SubsectionWrapper isDebugMode={isDebugMode}>
-              <DetailItem title="More Info" isDebugMode={isDebugMode}>
-                <DetailText isDebugMode={isDebugMode}>
-                  {market.more_info}
-                </DetailText>
-              </DetailItem>
-            </SubsectionWrapper>
-          </SectionCard>
-        )}
+        </SectionCard>        
       </div>
     </div>
   );
