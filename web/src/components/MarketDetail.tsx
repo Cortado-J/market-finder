@@ -5,16 +5,19 @@ import { humanizeOpeningHours } from '../utils/scheduleUtils';
 import { useEffect, useState, CSSProperties } from 'react';
 import { OpenOn } from './NextOpening';
 import { addDays, format, parseISO } from 'date-fns';
+import { Session } from '@supabase/supabase-js'; // Import Session type
 
 interface MarketDetailProps {
   market: Market;
   onBack: () => void;
-  onEdit?: (market: Market) => void; // Added onEdit prop
+  onEdit?: (market: Market) => void; 
   marketNextOpening?: MarketOpening;
-  isDebugMode?: boolean; // Added for debug borders
+  isDebugMode?: boolean; 
+  session: Session | null; // Add session prop
+  adminUserId?: string; // Add adminUserId prop (optional as it comes from env)
 }
 
-export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebugMode = false }: MarketDetailProps) {
+export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebugMode = false, session, adminUserId }: MarketDetailProps) {
   // Guard clause: If market data is not available, don't render.
   if (!market) {
     console.error("MarketDetail rendered without a market object.");
@@ -26,7 +29,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
 
   // Construct the display address
   let displayAddress = market.address || '';
-  const marketPostcode = market.postcode; // Now correctly typed from Market interface
+  const marketPostcode = market.postcode; 
 
   console.log('MarketDetail - market.address:', market.address);
   console.log('MarketDetail - market.postcode (from market object):', marketPostcode);
@@ -109,7 +112,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
       
       setDirectionsUrls({
         google: googleUrl,
-        apple: appleUrl // Provide Apple Maps for all devices as requested
+        apple: appleUrl 
       });
     } else {
       // Fallback to address if coordinates aren't available
@@ -190,7 +193,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
   interface SubsectionWrapperProps {
     children: React.ReactNode;
     isDebugMode?: boolean;
-    className?: string; // To allow passing existing margin classes etc.
+    className?: string; 
   }
 
   const SubsectionWrapper: React.FC<SubsectionWrapperProps> = ({ children, isDebugMode, className }) => {
@@ -221,7 +224,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
     const headingStyle: CSSProperties = {
       padding: '0px',
       fontWeight: 'bold',
-      marginBottom: '4px', // Force a noticeable bottom margin via inline style
+      marginBottom: '4px', 
     };
     if (isDebugMode) {
       headingStyle.border = '1px dashed green';
@@ -248,17 +251,15 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
     children: React.ReactNode;
     isDebugMode?: boolean;
     textColorClassName?: string;
-    key?: string | number; // Allow key prop
+    key?: string | number; 
   }
 
   const DetailText: React.FC<DetailTextProps> = ({ children, isDebugMode, textColorClassName = "text-blue-900", key }) => {
-    const elementStyle: CSSProperties = {}; // Renamed for clarity, applies to div
+    const elementStyle: CSSProperties = {}; 
     if (isDebugMode) {
       elementStyle.border = '1px dashed orange';
       elementStyle.boxSizing = 'border-box';
     }
-    // mt-1 adds 4px top margin, p-0 ensures no extra padding from the div itself
-    // Changed leading-none to leading-normal for better readability of wrapped text
     const classNames = `text-sm leading-normal mt-1 mb-0 p-0 ${textColorClassName}`;
     return (
       <div key={key} className={classNames} style={elementStyle}>
@@ -267,17 +268,15 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
     );
   };
 
-  const HEADER_HEIGHT = '60px'; // Define header height as a constant
+  const HEADER_HEIGHT = '60px'; 
 
   return (
-    // Main viewport container: Relative positioning, 100vh, overflow hidden
     <div 
       className="market-detail-viewport bg-white" 
       style={{
         position: 'relative',
-        height: '100vh', // Changed from 100% to 100vh to fill viewport
+        height: '100vh', 
         overflow: 'hidden'
-        // Removed backgroundColor: 'magenta'
       }}
     >
       {/* Absolutely Positioned Header */}
@@ -290,36 +289,47 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
           right: 0,
           height: HEADER_HEIGHT,
           zIndex: 10,
-          paddingLeft: '16px', // Apply side padding directly to header
+          paddingLeft: '16px', 
           paddingRight: '16px'
         }}
       >
         <div 
-          className="flex items-center justify-between h-full" // Ensure inner div takes full header height
+          className="flex items-center justify-between h-full" 
         >
           {/* Back button */}
           <button 
             onClick={onBack}
-            className="flex items-center justify-center w-[3.15rem] h-[3.2rem] rounded-lg border border-gray-300 bg-blue-50 text-blue-900 shadow-sm hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+            className="p-2 rounded hover:bg-gray-200 active:bg-gray-300 transition-colors text-sm font-medium text-blue-600"
             aria-label="Back to list"
           >
-            <span className="text-6xl font-bold">&lt;</span>
+            &lt; Back
           </button>
-          {/* Market name */}
-          <h1 className="text-lg font-bold text-center text-blue-900 truncate" style={{ flexGrow: 1 }}>
-            {market.name} 
-          </h1>
-          {/* Edit button or Spacer */}
-          {isDebugMode && onEdit ? (
-            <button
-              onClick={() => onEdit(market)}
-              className="flex items-center justify-center w-[3.15rem] h-[3.2rem] rounded-lg border border-gray-300 bg-green-50 text-green-900 shadow-sm hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
-              aria-label="Edit market"
+
+          {/* Title or Market Name - centered (flex-grow, text-center) */}
+          <h2 className="flex-grow text-center text-lg font-semibold text-gray-700 truncate px-2">
+            {market.name}
+          </h2>
+
+          {/* Edit button or spacer */}
+          {onEdit && session && session.user && adminUserId && session.user.id === adminUserId ? (
+            <button 
+              onClick={() => onEdit(market)} 
+              className="p-2 rounded bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors text-sm font-medium"
+              aria-label="Edit market details"
+            >
+              Edit
+            </button>
+          ) : onEdit ? (
+            <button 
+              className="p-2 rounded bg-gray-300 text-gray-500 cursor-not-allowed text-sm font-medium"
+              aria-label="Edit market details (disabled)"
+              disabled
+              title={session && session.user ? "Editing restricted to admin users." : "Login required to edit."}
             >
               Edit
             </button>
           ) : (
-            <div style={{ width: '3.15rem' }} /> /* Original spacer */
+            <div style={{ width: '3.15rem' }} /> 
           )}
         </div>
       </div>
@@ -334,9 +344,9 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
           left: 0,
           right: 0,
           overflowY: 'auto',
-          paddingTop: '8px', // Space below the header before content starts
+          paddingTop: '8px', 
           paddingBottom: '16px',
-          paddingLeft: '16px', // Apply side padding to content area as well
+          paddingLeft: '16px', 
           paddingRight: '16px'
         }}
       >
@@ -433,7 +443,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
                       </DetailText>
                     );
                   }
-                  return null; // Should not happen if humanizeOpeningHours is well-behaved
+                  return null; 
                 })()}
               </DetailItem>
             </SubsectionWrapper>
