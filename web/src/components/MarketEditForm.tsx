@@ -66,10 +66,10 @@ export function MarketEditForm({ market, onSave, onCancel, isDebugMode = false }
     await onSave(updatedMarketData);
   };
 
-  const inputStyle = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
-  const textareaStyle = `${inputStyle} min-h-[80px]`; // For textareas
-  const labelStyle = "block text-sm font-medium text-gray-700";
-  const fieldWrapperStyle = isDebugMode ? "mb-4 p-2 border border-dashed border-orange-500" : "mb-4";
+  const inputStyle = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-2xl";
+  const textareaStyle = `${inputStyle} min-h-[100px]`;
+  const labelStyle = "block font-medium text-gray-700 mb-2 text-3xl";
+  const fieldWrapperStyle = isDebugMode ? "mb-6 p-2 border border-dashed border-orange-500" : "mb-6";
 
   // Define field configuration for easier rendering
   const fields: Array<{ name: keyof EditableMarketFields; label: string; type?: string; isTextarea?: boolean }> = [
