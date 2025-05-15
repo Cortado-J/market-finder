@@ -1,4 +1,9 @@
-/* Import custom styles first - this is what worked before */
+/* Tailwind directives first for proper cascade */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Then custom styles that can override Tailwind if needed */
 @import './styles/base.css';
 @import './styles/buttons.css';
 @import './styles/map.css';
@@ -6,9 +11,4 @@
 @import './styles/scrolling.css';
 @import './styles/layout.css';
 @import './styles/debug.css';
-@import './styles/utility-classes.css'; /* Custom utility classes to fix styling */
-
-/* Then Tailwind directives */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import './styles/utility-classes.css'; /* Custom utility classes as backup */

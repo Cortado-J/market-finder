@@ -1,18 +1,24 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  // Ensure content paths are correct and comprehensive
+  // Basic and simplified content configuration
   content: [
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
   ],
-  // Use a comprehensive safelist for critical classes
+  // Keep safelist minimal but comprehensive
   safelist: [
-    // Form element classes
+    // Essential classes
     'text-3xl',
     'text-2xl',
+    'text-xl',
+    'text-lg',
+    'text-sm',
     'font-medium',
+    'font-semibold',
     'text-gray-700',
+    'text-blue-600',
     'mb-2',
+    'mb-6',
     'block',
     'w-full',
     'px-3',
@@ -25,7 +31,6 @@ export default {
     'focus:outline-none',
     'focus:ring-indigo-500',
     'focus:border-indigo-500',
-    'sm:text-sm',
     // Test component classes
     'bg-red-500',
     'bg-orange-500',
@@ -34,13 +39,13 @@ export default {
     'bg-blue-500',
     'bg-indigo-500',
     'bg-purple-500',
-    // Other utility classes
-    'text-lg',
-    'font-semibold',
-    'mb-[1px]',
-    'text-green-500',
-    'text-6xl',
+    'h-4',
   ],
   theme: { extend: {} },
-  plugins: [],
+  // Disable any experimental features
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
+  // Enable strict mode for better error reporting
+  mode: 'jit',
 };

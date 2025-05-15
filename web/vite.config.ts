@@ -5,9 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
-    // Use the official Tailwind CSS Vite plugin
+    // Tailwind CSS plugin first to ensure it processes styles before React
     tailwindcss(),
+    react(),
   ],
   base: '/', // Ensure base path is correctly set for production
   server: {
@@ -17,6 +17,20 @@ export default defineConfig({
     hmr: {
       host: 'localhost'
     }
+  },
+  // Explicitly configure CSS processing
+  css: {
+    // Make sure CSS processing is properly handled
+    devSourcemap: true,
+    // Disable CSS modules by default
+    modules: {
+      scopeBehaviour: 'global'
+    }
+  },
+  // Optimize build for better performance
+  build: {
+    // Ensure CSS is processed correctly
+    cssCodeSplit: true,
+    sourcemap: true
   }
-  // Note: Vite automatically handles import.meta.env variables, no need to explicitly define them
 })
