@@ -1,9 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Use the official Tailwind CSS Vite plugin
+    tailwindcss(),
+  ],
   base: '/', // Ensure base path is correctly set for production
   server: {
     host: '0.0.0.0',  // Explicitly listen on all interfaces

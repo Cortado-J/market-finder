@@ -1,10 +1,14 @@
+/* Import custom styles first - this is what worked before */
 @import './styles/base.css';
 @import './styles/buttons.css';
 @import './styles/map.css';
 @import './styles/market-item.css';
 @import './styles/scrolling.css';
 @import './styles/layout.css';
+@import './styles/debug.css';
+@import './styles/utility-classes.css'; /* Custom utility classes to fix styling */
 
+/* Then Tailwind directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
