@@ -38,33 +38,19 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
   }, [currentDateFilter]); // Rerun when the active filter changes
 
   return (
-    <div className="date-controls-container">
-      
+    <div className="w-full">
       {/* Horizontal scrolling container */}
-      <div 
+      <div
         ref={scrollContainerRef}
-        className="date-buttons-strip"
-        style={{
-          display: 'flex',
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch', // For smooth scrolling on iOS
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none', // IE/Edge
-          touchAction: 'pan-x', // Enable touch panning
-          paddingTop: '0.4rem',
-          paddingRight: '0.5rem',
-          paddingBottom: '0.4rem',
-          paddingLeft: '0.5rem',
-        }}
+        className="flex flex-nowrap overflow-x-auto touch-pan-x py-1.5 px-2 -mx-2 scrollbar-hide"
       >
         {/* Today button */}
         <DateModeButton
           label={
-            <>
-              <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Today</span>
-              <span style={{ fontSize: '16px', display: 'block' }}>{format(new Date(), 'd')}</span>
-            </>
+              <>
+                  <span className="font-bold block mb-1">Today</span>
+                  <span className="text-base block">{format(new Date(), 'd')}</span>
+              </>
           }
           onClick={() => onDateFilterChange('today')}
           isActive={currentDateFilter === 'today'}
@@ -74,10 +60,10 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
         {/* Tomorrow button */}
         <DateModeButton
           label={
-            <>
-              <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{format(addDays(new Date(), 1), 'EEE')}</span>
-              <span style={{ fontSize: '16px', display: 'block' }}>{format(addDays(new Date(), 1), 'd')}</span>
-            </>
+              <>
+                  <span className="font-bold block mb-1">{format(addDays(new Date(), 1), 'EEE')}</span>
+                  <span className="text-base block">{format(addDays(new Date(), 1), 'd')}</span>
+              </>
           }
           onClick={() => onDateFilterChange('tomorrow')}
           isActive={currentDateFilter === 'tomorrow'}
@@ -96,8 +82,8 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
               key={filterName}
               label={
                 <>
-                  <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{dayName}</span>
-                  <span style={{ fontSize: '16px', display: 'block' }}>{dayOfMonth}</span>
+                  <span className="font-bold block mb-1">{dayName}</span>
+                  <span className="text-base block">{dayOfMonth}</span>
                 </>
               }
               onClick={() => onDateFilterChange(filterName)}
@@ -110,10 +96,10 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
         {/* Next 14 days button */}
         <DateModeButton
           label={
-            <>
-              <span style={{ fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>14 Days</span>
-              <span style={{ fontSize: '16px', display: 'block' }}>View</span>
-            </>
+              <>
+                  <span className="font-bold block mb-1">14 Days</span>
+                  <span className="text-base block">View</span>
+              </>
           }
           onClick={() => onDateFilterChange('next-14-days')}
           isActive={currentDateFilter === 'next-14-days'}

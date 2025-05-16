@@ -59,11 +59,8 @@ export function WeekdaySelector({ selectedDays = [], onChange, debugMode }: Week
   };
 
   return (
-    <div className="date-controls-container">
-      <div 
-        className="date-buttons-strip" 
-        style={{ paddingTop: '0.4rem', paddingBottom: '0.4rem' }} // Override CSS top/bottom padding
-      >
+    <div className="w-full">
+      <div className="flex flex-wrap gap-2 py-1.5">
         {/* All button */}
         <DateModeButton
           label="All"

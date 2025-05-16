@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { cn } from '../lib/utils'
 import { format } from 'date-fns'
 import { Market } from '../types/Market'
 import { MarketOpening, getUpcomingMarketOpenings } from '../utils/getMarketOpenings'
@@ -102,8 +103,20 @@ export function MarketList({
     });
   }, [markets]);
 
+  // Handle image error by hiding the image and showing the fallback
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.currentTarget;
+    // Hide the image
+    target.style.display = 'none';
+    // Show the fallback div that's already in the DOM
+    const fallbackEl = target.nextElementSibling as HTMLElement;
+    if (fallbackEl) {
+      fallbackEl.style.display = 'flex';
+    }
+  };
+
   return (
-    <div className="space-y-6 p-4 pb-20 font-sans" style={style}> 
+    <div className={cn("space-y-6 p-4 pb-20 font-sans", style?.toString())}>
       {/* Navigation controls moved to App.tsx */}
       
       {/* Market list - styled with light blue boxes */}
@@ -122,31 +135,28 @@ export function MarketList({
             return (
               <div
                 key={market.market_id}
-                className={`market-item p-4 bg-blue-50 rounded-lg shadow-sm relative ${selectedMarket?.market_id === market.market_id ? 'selected' : ''}`}
+                className={cn(
+                  "p-4 bg-blue-50 rounded-lg shadow-sm relative cursor-pointer hover:bg-blue-100 transition-colors",
+                  selectedMarket?.market_id === market.market_id && "ring-2 ring-blue-500"
+                )}
                 onClick={() => onMarketSelect(market)}
               >
                 <div className="flex items-start flex-row-reverse">
-                  <div className="market-image-container market-image w-8 h-8 ml-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
+                  <div className="market-image-container w-8 h-8 ml-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
                     {market.market_ref ? (
                       <img 
                         src={getMarketImageUrl(market.market_ref)}
                         alt={market.name}
                         className="object-contain object-center w-full h-full"
-                        onError={(e) => {
-                          // Hide the image and show initials instead
-                          e.currentTarget.style.display = 'none';
-                          // Show the fallback div that's already in the DOM
-                          const fallbackEl = e.currentTarget.nextElementSibling;
-                          if (fallbackEl) {
-                            (fallbackEl as HTMLElement).style.display = 'flex';
-                          }
-                        }}
+                        onError={handleImageError}
                       />
                     ) : null}
                     {/* Fallback to initials if no image or image fails to load */}
                     <div 
-                      className="absolute inset-0 w-full h-full flex items-center justify-center text-blue-800 font-bold text-xs"
-                      style={{ display: market.market_ref ? 'none' : 'flex' }}
+                      className={cn(
+                        "absolute inset-0 w-full h-full items-center justify-center text-blue-800 font-bold text-xs",
+                        market.market_ref ? "hidden" : "flex"
+                      )}
                     >
                       {market.name.substring(0, 2).toUpperCase()}
                     </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../lib/utils';
 import { DateSelector, DateFilter } from './DateSelector';
 import { WeekdaySelector, Weekday } from './WeekdaySelector';
 
@@ -19,20 +20,17 @@ export function DateWeekControls({
   onWeekdaysChange,
   debugMode,
 }: DateWeekControlsProps) {
-  const mainStyle = debugMode ? { border: '2px dashed red', boxSizing: 'border-box' as 'border-box' } : {};
-  const soonContainerStyle = debugMode ? { border: '2px solid limegreen', boxSizing: 'border-box' as 'border-box' } : {};
-  const weekContainerStyle = debugMode ? { border: '2px solid blue', boxSizing: 'border-box' as 'border-box' } : {};
+  // Debug mode classes
+  const mainClass = debugMode ? 'border-2 border-dashed border-red-500 box-border' : '';
+  const soonContainerClass = debugMode ? 'border-2 border-lime-500 box-border' : '';
+  const weekContainerClass = debugMode ? 'border-2 border-blue-500 box-border' : '';
 
   return (
     <div 
-      className="z-30 bg-white overflow-hidden"
-      style={mainStyle}
+      className={cn("z-30 bg-white overflow-hidden", mainClass)}
     >
       {currentWhenMode === 'soon' && (
-        <div 
-          className="date-scroll-container px-4 pt-3 pb-3"
-          style={soonContainerStyle}
-        >
+        <div className={cn("px-4 pt-3 pb-3", soonContainerClass)}>
           <DateSelector 
             currentDateFilter={currentDateFilter}
             onDateFilterChange={onDateFilterChange}
@@ -41,10 +39,7 @@ export function DateWeekControls({
         </div>
       )}
       {currentWhenMode === 'week' && (
-        <div 
-          className="date-scroll-container week-mode-active px-4 pt-3 pb-3"
-          style={weekContainerStyle}
-        >
+        <div className={cn("px-4 pt-3 pb-3", weekContainerClass)}>
           <WeekdaySelector 
             selectedDays={selectedWeekdays}
             onChange={onWeekdaysChange}
