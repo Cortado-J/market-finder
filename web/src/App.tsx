@@ -235,13 +235,18 @@ function App() {
   if (loading) return <div className="p-4">Loading markets...</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
+  // Check if we should show Tailwind test components
+  const showTailwindTests = import.meta.env.VITE_SHOW_TAILWIND_TESTS === 'true';
+
   return (
     <div className="app flex flex-col h-screen">
-      {/* Test Components - Only shown in development */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-4">
-        <TailwindDirectTest />
-        <TailwindVerification />
-      </div>
+      {/* Test Components - Only shown when VITE_SHOW_TAILWIND_TESTS=true */}
+      {showTailwindTests && (
+        <div className="fixed top-4 right-4 z-50 flex flex-col gap-4">
+          <TailwindDirectTest />
+          <TailwindVerification />
+        </div>
+      )}
       {viewMode === 'detail' ? (
         <div className="max-w-2xl mx-auto w-full h-full"> 
           <MarketDetail 

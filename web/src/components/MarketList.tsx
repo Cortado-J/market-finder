@@ -141,13 +141,13 @@ export function MarketList({
                 )}
                 onClick={() => onMarketSelect(market)}
               >
-                <div className="flex items-start flex-row-reverse">
-                  <div className="market-image-container w-8 h-8 ml-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
+                <div className="flex items-start">
+                  <div className="market-image-container w-24 h-24 md:w-28 md:h-28 ml-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
                     {market.market_ref ? (
                       <img 
                         src={getMarketImageUrl(market.market_ref)}
                         alt={market.name}
-                        className="object-contain object-center w-full h-full"
+                        className="object-contain object-center w-full h-full p-1"
                         onError={handleImageError}
                       />
                     ) : null}
