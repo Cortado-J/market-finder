@@ -23,10 +23,10 @@ try {
 } catch (error) {
   console.error('Failed to initialize app:', error)
   document.body.innerHTML = `
-    <div style="padding: 20px; font-family: sans-serif;">
-      <h1>Failed to load the application</h1>
-      <p>There was an error initializing the app. Please check the console for details.</p>
-      <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">${error}</pre>
+    <div class="p-5 font-sans">
+      <h1 class="text-2xl font-bold mb-4">Failed to load the application</h1>
+      <p class="mb-4">There was an error initializing the app. Please check the console for details.</p>
+      <pre class="bg-gray-100 p-2.5 rounded overflow-auto">${error}</pre>
     </div>
   `
 }

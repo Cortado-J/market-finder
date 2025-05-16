@@ -4,31 +4,21 @@ import React from 'react';
 // We'll use this to compare with our Tailwind component
 const TailwindDirectTest = () => {
   return (
-    <div style={{
-      position: 'fixed',
-      top: '80px',
-      right: '20px',
-      zIndex: 50,
-      backgroundColor: 'white',
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-      padding: '16px',
-      border: '1px solid #e5e7eb',
-      borderRadius: '6px'
-    }}>
-      <h2 style={{ fontSize: '24px', color: '#2563eb', fontWeight: 'bold', marginBottom: '8px' }}>
-        Tailwind Direct Test
+    <div className="fixed top-20 right-5 z-50 bg-white p-4 border border-gray-200 rounded-md shadow-md">
+      <h2 className="text-2xl font-bold text-blue-600 mb-2">
+        Direct Style Test
       </h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ height: '16px', width: '100%', backgroundColor: '#ef4444' }}></div>
-        <div style={{ height: '16px', width: '100%', backgroundColor: '#f97316' }}></div>
-        <div style={{ height: '16px', width: '100%', backgroundColor: '#eab308' }}></div>
-        <div style={{ height: '16px', width: '100%', backgroundColor: '#22c55e' }}></div>
-        <div style={{ height: '16px', width: '100%', backgroundColor: '#3b82f6' }}></div>
-        <div style={{ height: '16px', width: '100%', backgroundColor: '#6366f1' }}></div>
-        <div style={{ height: '16px', width: '100%', backgroundColor: '#a855f7' }}></div>
+      <div className="flex flex-col gap-2">
+        <div className="h-4 w-full bg-red-500"></div>
+        <div className="h-4 w-full bg-orange-500"></div>
+        <div className="h-4 w-full bg-yellow-500"></div>
+        <div className="h-4 w-full bg-green-500"></div>
+        <div className="h-4 w-full bg-blue-500"></div>
+        <div className="h-4 w-full bg-indigo-500"></div>
+        <div className="h-4 w-full bg-purple-500"></div>
       </div>
-      <p style={{ marginTop: '8px', fontSize: '14px', color: '#4b5563' }}>
-        This box uses direct inline styles (no Tailwind classes)
+      <p className="mt-2 text-sm text-gray-600">
+        This box uses direct inline styles
       </p>
     </div>
   );

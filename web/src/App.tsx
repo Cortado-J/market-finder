@@ -236,17 +236,9 @@ function App() {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
-    <div className="app" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div className="app flex flex-col h-screen">
       {/* Test Components - Only shown in development */}
-      <div style={{
-        position: 'fixed',
-        top: '1rem',
-        right: '1rem',
-        zIndex: 50,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem'
-      }}>
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-4">
         <TailwindDirectTest />
         <TailwindVerification />
       </div>
@@ -272,7 +264,7 @@ function App() {
       ) : (
         // This div groups Header, DateControls, and MainContent area
         // It's a flex column and grows to fill space within App's flex column.
-        <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+        <div className="flex flex-col flex-1">
           <AppHeader
             debugMode={debugMode}
             setDebugMode={setDebugMode}
@@ -293,7 +285,7 @@ function App() {
             debugMode={debugMode}
           />
           {/* This div is meant to take the rest of the space */}
-          <div style={{ flexGrow: 1, position: 'relative' }}>
+          <div className="flex-1 relative">
             <MainContent 
               viewMode={viewMode as 'list' | 'map'} // Cast to specific type
               filteredMarkets={filteredMarkets}
