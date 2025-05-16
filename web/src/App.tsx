@@ -26,8 +26,8 @@ import { BuildInfo } from './components/BuildInfo'; // Import BuildInfo from its
 import { MarketEditForm } from './components/MarketEditForm'; // Import the new form
 import Login from './components/Login'; // Added Login component
 import { Session } from '@supabase/supabase-js'; // Added for type safety
-import TailwindTest from './TailwindTest'; // Import test component
 import TailwindDirectTest from './TailwindDirectTest'; // Import direct style test component
+import TailwindVerification from './TailwindVerification'; // Import Tailwind verification component
 
 // Default location coordinates for BS7 8LZ
 const defaultLocation: [number, number] = [-2.5973, 51.4847];
@@ -237,10 +237,19 @@ function App() {
 
   return (
     <div className="app" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      {/* Tailwind Test Component - always visible */}
-      <TailwindTest />
-      {/* Direct Style Test Component - for comparison */}
-      <TailwindDirectTest />
+      {/* Test Components - Only shown in development */}
+      <div style={{
+        position: 'fixed',
+        top: '1rem',
+        right: '1rem',
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <TailwindDirectTest />
+        <TailwindVerification />
+      </div>
       {viewMode === 'detail' ? (
         <div className="max-w-2xl mx-auto w-full h-full"> 
           <MarketDetail 

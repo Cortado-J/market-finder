@@ -1,9 +1,8 @@
-/* Tailwind directives first for proper cascade */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind v4 */
+@import "tailwindcss";
 
-/* Then custom styles that can override Tailwind if needed */
+/* Custom styles */
+@import './styles/utility-classes.css';
 @import './styles/base.css';
 @import './styles/buttons.css';
 @import './styles/map.css';
@@ -11,4 +10,3 @@
 @import './styles/scrolling.css';
 @import './styles/layout.css';
 @import './styles/debug.css';
-@import './styles/utility-classes.css'; /* Custom utility classes as backup */
