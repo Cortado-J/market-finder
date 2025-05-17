@@ -14,14 +14,22 @@ interface UseMarketDataProps {
   selectedWeekdays: Weekday[];
 }
 
+// Cache for markets and openings data
+let cachedMarkets: Market[] | null = null;
+let cachedMarketOpenings: MarketOpening[] | null = null;
+
+// Time when data was last fetched
+let lastFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+
 export function useMarketData({
   currentWhenMode,
   currentDateFilter,
   selectedWeekdays,
 }: UseMarketDataProps) {
-  const [markets, setMarkets] = useState<Market[]>([]);
-  const [marketOpenings, setMarketOpenings] = useState<MarketOpening[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [markets, setMarkets] = useState<Market[]>(cachedMarkets || []);
+  const [marketOpenings, setMarketOpenings] = useState<MarketOpening[]>(cachedMarketOpenings || []);
+  const [isInitialLoad, setIsInitialLoad] = useState(!cachedMarkets);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -30,8 +38,22 @@ export function useMarketData({
   };
 
   useEffect(() => {
+    const now = Date.now();
+    const shouldUseCache = cachedMarkets && (now - lastFetchTime) < CACHE_DURATION;
+    
+    // If we have cached data and it's not a forced refresh, use the cache
+    if (shouldUseCache && refreshTrigger === 0) {
+      setMarkets(cachedMarkets!);
+      setMarketOpenings(cachedMarketOpenings!);
+      return;
+    }
+
     async function fetchMarketsAndOpenings() {
-      setLoading(true);
+      const isInitial = !cachedMarkets;
+      if (isInitial) {
+        setIsInitialLoad(true);
+      }
+      
       try {
         // Fetch raw market data (for opening_hours, market_ref, categories)
         const { data: rawData, error: rawError } = await supabase
@@ -95,17 +117,28 @@ export function useMarketData({
             }
           } as Market;
         });
+        // Update state and cache
         setMarkets(transformedMarkets);
-
-        // Fetch upcoming market openings
-        const nextOpenings = await getUpcomingMarketOpenings(14);
-        setMarketOpenings(nextOpenings);
+        cachedMarkets = transformedMarkets;
+        
+        // Only fetch openings if we don't have them or if forced
+        if (!cachedMarketOpenings || refreshTrigger > 0) {
+          const nextOpenings = await getUpcomingMarketOpenings(14);
+          setMarketOpenings(nextOpenings);
+          cachedMarketOpenings = nextOpenings;
+        } else {
+          setMarketOpenings(cachedMarketOpenings);
+        }
+        
+        lastFetchTime = Date.now();
 
       } catch (e) {
         console.error('Error in useMarketData:', e);
         setError(e instanceof Error ? e.message : 'An unknown error occurred');
       } finally {
-        setLoading(false);
+        if (isInitial) {
+          setIsInitialLoad(false);
+        }
       }
     }
 
@@ -113,7 +146,9 @@ export function useMarketData({
     fetchMarketsAndOpenings();
 
     // No cleanup function needed for this effect's current logic
-  }, [currentWhenMode, currentDateFilter, selectedWeekdays, refreshTrigger]); // Added refreshTrigger
+  // Only include refreshTrigger in deps to prevent unnecessary refetches
+  // when only the filtering params change
+  }, [refreshTrigger]);
 
   // Filtered markets logic (memoized)
   const filteredMarkets = useMemo(() => {
@@ -153,12 +188,15 @@ export function useMarketData({
     }
   }, [markets, marketOpenings, currentWhenMode, currentDateFilter, selectedWeekdays]);
 
+  // Only show loading on initial data load
+  const loading = isInitialLoad && markets.length === 0;
+  
   return {
     markets,
     filteredMarkets,
     marketOpenings,
     loading,
     error,
-    triggerRefetchMarkets, // Expose the refetch trigger function
+    triggerRefetchMarkets,
   };
 }

@@ -2,16 +2,19 @@ import React from 'react';
 import { WhenMode } from './WhenModeToggle';
 import { Session } from '@supabase/supabase-js'; // Import Session type
 
+// Define the view modes that the header can handle
+type HeaderViewMode = 'list' | 'map';
+
 interface AppHeaderProps {
   debugMode: boolean;
   setDebugMode: (v: boolean) => void;
   currentWhenMode: WhenMode;
   setCurrentWhenMode: (mode: WhenMode) => void;
-  viewMode: 'list' | 'map' | 'detail' | 'login'; // Updated to include 'login'
-  setViewMode: (mode: 'list' | 'map') => void;
-  session: Session | null; // Add session prop
-  onLogout: () => void; // Add onLogout prop
-  onLogin: () => void; // Add onLogin prop
+  viewMode: HeaderViewMode;
+  setViewMode: (mode: HeaderViewMode) => void;
+  session: Session | null;
+  onLogout: () => void;
+  onLogin: () => void;
 }
 
 export function AppHeader({ 

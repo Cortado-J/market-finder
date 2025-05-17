@@ -33,17 +33,24 @@ import TailwindVerification from './TailwindVerification'; // Import Tailwind ve
 const defaultLocation: [number, number] = [-2.5973, 51.4847];
 
 // View mode type
-export type ViewMode = 'list' | 'map' | 'detail' | 'editDetail' | 'login'; // Added 'login'
+export type ViewMode = 'list' | 'map' | 'detail' | 'editDetail' | 'login'; // All possible view modes
+type MainViewMode = 'list' | 'map' | 'detail' | 'login'; // View modes for the main content
 
 function App() {
   // States managed by App.tsx directly
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  // Cast viewMode to MainViewMode when needed for components that don't need editDetail
+  const mainViewMode: MainViewMode = viewMode === 'editDetail' ? 'detail' : viewMode;
+  
+  // For header, we only want list or map view
+  const headerViewMode = viewMode === 'list' || viewMode === 'map' ? viewMode : 'list';
   const [currentDateFilter, setCurrentDateFilter] = useState<DateFilter>('today');
   const [currentWhenMode, setCurrentWhenMode] = useState<WhenMode>('soon');
   const [debugMode, setDebugMode] = useState<boolean>(false);
   const [selectedWeekdays, setSelectedWeekdays] = useState<Weekday[]>(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
-  const [session, setSession] = useState<Session | null>(null); // Added session state
+  const [session, setSession] = useState<Session | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Fetching and filtering logic moved to useMarketData hook
   const {
@@ -80,8 +87,36 @@ function App() {
     } else {
       // If null is passed (e.g. deselect from map), go back to previous list/map view
       setSelectedMarket(null);
-      setViewMode(previousViewMode as 'list' | 'map'); // Ensure it goes to list or map
+      setViewMode(previousViewMode as 'list' | 'map');
     }
+  };
+
+  // Handle mode changes with transition
+  const handleWhenModeChange = (mode: WhenMode) => {
+    setIsTransitioning(true);
+    // Use requestAnimationFrame to ensure the state update is batched
+    requestAnimationFrame(() => {
+      setCurrentWhenMode(mode);
+      setIsTransitioning(false);
+    });
+  };
+
+  // Handle date filter changes with transition
+  const handleDateFilterChange = (filter: DateFilter) => {
+    setIsTransitioning(true);
+    requestAnimationFrame(() => {
+      setCurrentDateFilter(filter);
+      setIsTransitioning(false);
+    });
+  };
+
+  // Handle weekday changes with transition
+  const handleWeekdaysChange = (weekdays: Weekday[]) => {
+    setIsTransitioning(true);
+    requestAnimationFrame(() => {
+      setSelectedWeekdays(weekdays);
+      setIsTransitioning(false);
+    });
   };
 
   const handleBackToList = () => {
@@ -198,6 +233,55 @@ function App() {
     return marketOpenings.find(op => op.marketId === selectedMarket.market_id);
   }, [selectedMarket, marketOpenings]);
 
+  // Memoize the main content to prevent unnecessary re-renders
+  const mainContent = useMemo(() => {
+    // Only show map or list view in the main content area
+    if (mainViewMode !== 'list' && mainViewMode !== 'map') {
+      return null;
+    }
+    
+    return (
+      <MainContent
+        viewMode={mainViewMode}
+        filteredMarkets={filteredMarkets}
+        selectedMarket={selectedMarket}
+        defaultLocation={defaultLocation}
+        handleMarketSelect={handleMarketSelect}
+        selectedMarketNextOpening={selectedMarketNextOpening}
+        currentWhenMode={currentWhenMode}
+        selectedDayCode={selectedDayCode}
+        debugMode={debugMode}
+      />
+    );
+  }, [
+    mainViewMode,
+    filteredMarkets,
+    selectedMarket,
+    defaultLocation,
+    handleMarketSelect,
+    selectedMarketNextOpening,
+    currentWhenMode,
+    selectedDayCode,
+    debugMode
+  ]);
+
+  // Memoize the date/week controls
+  const dateWeekControls = useMemo(() => (
+    <DateWeekControls
+      currentWhenMode={currentWhenMode}
+      currentDateFilter={currentDateFilter}
+      onDateFilterChange={handleDateFilterChange}
+      selectedWeekdays={selectedWeekdays}
+      onWeekdaysChange={handleWeekdaysChange}
+      debugMode={debugMode}
+    />
+  ), [
+    currentWhenMode, 
+    currentDateFilter, 
+    selectedWeekdays, 
+    debugMode
+  ]);
+
   // Effect for Supabase auth state changes
   useEffect(() => {
     // Get current session on initial load
@@ -252,61 +336,48 @@ function App() {
           <TailwindVerification />
         </div>
       )}
-      {viewMode === 'detail' ? (
-        <div className="max-w-2xl mx-auto w-full h-full"> 
-          <MarketDetail 
-            market={selectedMarket!} 
-            onBack={handleBackToList} 
-            onEdit={(marketToEdit) => handleGoToEditMarket(marketToEdit)} 
-            isDebugMode={debugMode}
-            marketNextOpening={selectedMarketNextOpening} 
-            session={session} // Pass session
-            adminUserId={VITE_ADMIN_USER_ID} // Pass adminUserId
-          />
-        </div>
-      ) : viewMode === 'editDetail' && selectedMarket ? (
-        <MarketEditForm 
-          market={selectedMarket} 
-          onSave={handleSaveMarket} 
-          onCancel={handleCancelEdit}
+      {viewMode === 'detail' && selectedMarket ? (
+        <MarketDetail
+          market={selectedMarket}
+          onBack={handleBackToList}
+          onEdit={session ? handleGoToEditMarket : undefined}
           isDebugMode={debugMode}
+          session={session}
+          adminUserId={VITE_ADMIN_USER_ID}
+        />
+      ) : viewMode === 'editDetail' && selectedMarket ? (
+        <MarketEditForm
+          market={selectedMarket}
+          onSave={handleSaveMarket}
+          onCancel={handleCancelEdit}
         />
       ) : (
         // This div groups Header, DateControls, and MainContent area
         // It's a flex column and grows to fill space within App's flex column.
-        <div className="flex flex-col flex-1">
-          <AppHeader
-            debugMode={debugMode}
-            setDebugMode={setDebugMode}
-            currentWhenMode={currentWhenMode}
-            setCurrentWhenMode={setCurrentWhenMode}
-            viewMode={viewMode as 'list' | 'map' | 'detail' | 'login'} // Updated type
-            setViewMode={(mode) => setViewMode(mode as 'list' | 'map')} 
-            session={session} // Pass session
-            onLogout={handleLogout} // Pass logout handler
-            onLogin={handleLogin} // Pass login handler
-          />
-          <DateWeekControls
-            currentWhenMode={currentWhenMode}
-            currentDateFilter={currentDateFilter}
-            onDateFilterChange={setCurrentDateFilter}
-            selectedWeekdays={selectedWeekdays}
-            onWeekdaysChange={setSelectedWeekdays}
-            debugMode={debugMode}
-          />
-          {/* This div is meant to take the rest of the space */}
-          <div className="flex-1 relative">
-            <MainContent 
-              viewMode={viewMode as 'list' | 'map'} // Cast to specific type
-              filteredMarkets={filteredMarkets}
-              selectedMarket={selectedMarket}
-              defaultLocation={defaultLocation}
-              handleMarketSelect={handleMarketSelect}
-              selectedMarketNextOpening={selectedMarketNextOpening}
-              currentWhenMode={currentWhenMode}
-              selectedDayCode={selectedDayCode}
+        <div className="flex flex-col h-screen bg-gray-900">
+          <div className={`transition-opacity duration-200 ${isTransitioning ? 'opacity-75' : 'opacity-100'}`}>
+            <AppHeader
               debugMode={debugMode}
+              setDebugMode={setDebugMode}
+              currentWhenMode={currentWhenMode}
+              setCurrentWhenMode={handleWhenModeChange}
+              viewMode={headerViewMode}
+              setViewMode={(mode) => {
+                // Only update view mode if it's a valid header view mode
+                if (mode === 'list' || mode === 'map') {
+                  setViewMode(mode);
+                }
+              }}
+              session={session}
+              onLogout={handleLogout}
+              onLogin={handleLogin}
             />
+            {/* Date/Week Controls */}
+            {dateWeekControls}
+          </div>
+          {/* Main Content - outside transition div to prevent layout shifts */}
+          <div className="flex-1">
+            {mainContent}
           </div>
         </div>
       )}
