@@ -13,7 +13,7 @@ export function DateModeButton({ label, onClick, isActive, debugMode }: DateMode
     <button
       onClick={onClick}
       className={cn(
-        'px-4 py-2 rounded-md transition-colors',
+        'px-3 py-1 rounded-md transition-colors text-sm min-w-[2.5rem]',
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
         isActive 
           ? 'bg-gray-500 text-white hover:bg-gray-600' 

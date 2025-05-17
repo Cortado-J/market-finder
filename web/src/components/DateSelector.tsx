@@ -1,4 +1,4 @@
-import { format, addDays } from 'date-fns';
+import { format, addDays, isToday, isTomorrow } from 'date-fns';
 import React, { useRef, useEffect } from 'react';
 import { DateModeButton } from './DateModeButton'; // Assuming DateModeButton is in the same directory
 
@@ -49,8 +49,8 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
           <DateModeButton
             label={
                 <>
-                    <span className="font-bold block mb-1">Today</span>
-                    <span className="text-base block">{format(new Date(), 'd')}</span>
+                    <span className="font-medium block text-sm">Today</span>
+                    <span className="font-bold block text-xs text-gray-300">{format(new Date(), 'd')}</span>
                 </>
             }
             onClick={() => onDateFilterChange('today')}
@@ -62,8 +62,8 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
           <DateModeButton
             label={
                 <>
-                    <span className="font-bold block mb-1">{format(addDays(new Date(), 1), 'EEE')}</span>
-                    <span className="text-base block">{format(addDays(new Date(), 1), 'd')}</span>
+                    <span className="font-medium block text-sm">{format(addDays(new Date(), 1), 'EEE')}</span>
+                    <span className="font-bold block text-xs text-gray-300">{format(addDays(new Date(), 1), 'd')}</span>
                 </>
             }
             onClick={() => onDateFilterChange('tomorrow')}
@@ -83,8 +83,8 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
                 key={filterName}
                 label={
                   <>
-                    <span className="font-bold block mb-1">{dayName}</span>
-                    <span className="text-base block">{dayOfMonth}</span>
+                    <span className="font-medium block text-sm">{dayName}</span>
+                    <span className="font-bold block text-xs text-gray-300">{dayOfMonth}</span>
                   </>
                 }
                 onClick={() => onDateFilterChange(filterName)}
@@ -98,8 +98,8 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
           <DateModeButton
             label={
                 <>
-                    <span className="font-bold block mb-1">14 Days</span>
-                    <span className="text-base block">View</span>
+                    <span className="font-medium block">14 Days</span>
+                    <span className="font-medium block text-xs text-gray-300">View</span>
                 </>
             }
             onClick={() => onDateFilterChange('next-14-days')}
