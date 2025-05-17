@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 // Supabase client is now used in the hook
-import { MarketDetail } from './components/MarketDetail';
+import { MarketDetail } from './components/market/MarketDetail';
 import { Market } from './types/Market';
 // getMarketImageUrl is now used in the hook
 // MarketOpening, getUpcomingMarketOpenings are now used in the hook
