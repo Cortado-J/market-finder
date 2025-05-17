@@ -142,7 +142,7 @@ export function MarketList({
                 onClick={() => onMarketSelect(market)}
               >
                 <div className="flex items-start">
-                  <div className="market-image-container w-24 h-24 md:w-28 md:h-28 ml-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 dark:bg-gray-700 flex items-center justify-center relative">
+                  <div className="market-image-container w-24 h-24 md:w-28 md:h-28 ml-3 mr-4 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 dark:bg-gray-700 flex items-center justify-center relative">
                     {market.market_ref ? (
                       <img 
                         src={getMarketImageUrl(market.market_ref)}
@@ -165,12 +165,12 @@ export function MarketList({
                   <div className="flex-grow">
                     {/* Title only */}
                     <div className="flex justify-between items-start mb-0.5">
-                      <h3 className="market-name text-lg font-semibold text-blue-900 dark:text-blue-100 break-words leading-normal">{market.name}</h3>
+                      <h3 className="market-name text-lg font-semibold text-gray-900 dark:text-gray-100 break-words leading-normal">{market.name}</h3>
                     </div>
                     
                     {/* Open On (Soon mode) or Next Open (All modes) - hidden in Week mode */}
                     {selectedDayCode ? (
-                      <p className="text-sm mt-1 text-gray-700">
+                      <p className="text-sm mt-1 text-gray-700 dark:text-gray-300">
                         <span className="font-bold">{humanizeOpeningForDay(market.opening_hours || '', selectedDayCode)}</span>
                       </p>
                     ) : !isWeekMode && nextOpening && (
@@ -183,7 +183,7 @@ export function MarketList({
                     
                     {/* Regular opening hours */}
                     {market.opening_hours && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         <span>Opening hours:</span> {humanizeOpeningHours(market.opening_hours)}
                       </p>
                     )}
@@ -197,7 +197,7 @@ export function MarketList({
                     
                     {/* Address and distance (moved to bottom) - combined into one text element */}
                     {market.address && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         {market.address} {distance && `(${Math.round(distance * 0.621371)} miles)`}
                       </p>
                     )}

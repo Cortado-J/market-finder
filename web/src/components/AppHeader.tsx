@@ -45,16 +45,16 @@ export function AppHeader({
           <button
             onClick={() => setCurrentWhenMode('soon')}
             className={`px-4 py-2 rounded-md transition-colors ${currentWhenMode === 'soon' 
-            ? 'bg-blue-600 text-white dark:bg-blue-700' 
-            : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+            ? 'bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white' 
+            : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
           >
             Soon Mode
           </button>
           <button
             onClick={() => setCurrentWhenMode('week')}
             className={`px-4 py-2 rounded-md transition-colors ${currentWhenMode === 'week' 
-            ? 'bg-blue-600 text-white dark:bg-blue-700' 
-            : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+            ? 'bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white' 
+            : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
           >
             Week Mode
           </button>
@@ -91,16 +91,16 @@ export function AppHeader({
           <button
             onClick={() => setViewMode('list')}
             className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'list' 
-              ? 'bg-blue-600 text-white dark:bg-blue-700' 
-              : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+              ? 'bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white' 
+              : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
           >
             List View
           </button>
           <button
             onClick={() => setViewMode('map')}
             className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'map' 
-              ? 'bg-blue-600 text-white dark:bg-blue-700' 
-              : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
+              ? 'bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white' 
+              : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
           >
             Map View
           </button>

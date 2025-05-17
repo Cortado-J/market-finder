@@ -5,17 +5,125 @@ import { humanizeOpeningHours } from '../utils/scheduleUtils';
 import { useEffect, useState, CSSProperties } from 'react';
 import { OpenOn } from './NextOpening';
 import { addDays, format, parseISO } from 'date-fns';
-import { Session } from '@supabase/supabase-js'; // Import Session type
+import { Session } from '@supabase/supabase-js';
 
 interface MarketDetailProps {
   market: Market;
   onBack: () => void;
-  onEdit?: (market: Market) => void; 
+  onEdit?: (market: Market) => void;
   marketNextOpening?: MarketOpening;
-  isDebugMode?: boolean; 
-  session: Session | null; // Add session prop
-  adminUserId?: string; // Add adminUserId prop (optional as it comes from env)
+  isDebugMode?: boolean;
+  session: Session | null;
+  adminUserId?: string;
 }
+
+// DetailText Component
+interface DetailTextProps {
+  children: React.ReactNode;
+  isDebugMode?: boolean;
+  textColorClassName?: string;
+  key?: string | number;
+}
+
+const DetailText: React.FC<DetailTextProps> = ({ 
+  children, 
+  isDebugMode, 
+  textColorClassName = "text-gray-800 dark:text-gray-200", 
+  key 
+}) => {
+  const elementStyle: CSSProperties = {}; 
+  if (isDebugMode) {
+    elementStyle.border = '1px dashed orange';
+    elementStyle.boxSizing = 'border-box';
+  }
+  return (
+    <p className={`text-base ${textColorClassName}`} style={elementStyle} key={key}>
+      {children}
+    </p>
+  );
+};
+
+// DetailItem Component
+interface DetailItemProps {
+  title: string;
+  children: React.ReactNode;
+  isDebugMode?: boolean;
+}
+
+const DetailItem: React.FC<DetailItemProps> = ({ title, children, isDebugMode = false }) => {
+  return (
+    <div className="mb-3 last:mb-0" style={isDebugMode ? { border: '1px dashed green', boxSizing: 'border-box' } : {}}>
+      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{title}</h3>
+      <div className="text-sm text-gray-800 dark:text-gray-200">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+// SubsectionWrapper Component
+interface SubsectionWrapperProps {
+  children: React.ReactNode;
+  isDebugMode?: boolean;
+  className?: string;
+}
+
+const SubsectionWrapper: React.FC<SubsectionWrapperProps> = ({ 
+  children, 
+  isDebugMode, 
+  className = '' 
+}) => {
+  const style: CSSProperties = {
+    paddingTop: '8px',
+    paddingBottom: '8px',
+  };
+  if (isDebugMode) {
+    style.border = '1px dashed blue';
+    style.boxSizing = 'border-box';
+  }
+  return (
+    <div className={`${className} bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm`} style={style}>
+      {children}
+    </div>
+  );
+};
+
+// SectionCard Component
+interface SectionCardProps {
+  title: string;
+  children: React.ReactNode;
+  isDebugMode?: boolean;
+}
+
+const SectionCard: React.FC<SectionCardProps> = ({ title, children, isDebugMode = false }) => {
+  const h2DebugStyle: CSSProperties = isDebugMode 
+    ? { border: '1px dashed cyan', boxSizing: 'border-box', margin: '0px', padding: '0px', lineHeight: '1' } 
+    : { margin: '0px', padding: '0px', lineHeight: '1' };
+
+  return (
+    <div 
+      className={`shadow-sm text-blue-900 dark:text-blue-100 ${isDebugMode ? 'debug-section' : ''} mb-4`}
+      style={{ 
+        padding: '12px',
+        backgroundColor: 'rgba(219, 234, 254, 0.5)',
+        borderRadius: '0.5rem',
+        ...(isDebugMode && { border: '1px solid black', boxSizing: 'border-box' })
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <h2 
+          className="text-lg font-semibold text-blue-900 dark:text-blue-100 m-0" 
+          style={h2DebugStyle}
+        >
+          {title}
+        </h2>
+      </div>
+      <div className="space-y-3">
+        {children}
+      </div>
+    </div>
+  );
+};
 
 export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebugMode = false, session, adminUserId }: MarketDetailProps) {
   // Guard clause: If market data is not available, don't render.
@@ -38,13 +146,8 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
     const trimmedMarketAddress = (market.address || '').trim().toLowerCase();
     const trimmedMarketPostcode = marketPostcode.trim().toLowerCase();
 
-    // Check if the postcode (as a whole word/phrase) is already at the end of the address
-    // This handles cases like "Street Name, City, POSTCODE" or "Street Name, City POSTCODE"
+    // Check if the postcode is already at the end of the address
     if (!trimmedMarketAddress.endsWith(trimmedMarketPostcode)) {
-      // Further check to avoid adding if address is just "POSTCODE" but marketPostcode is also "POSTCODE"
-      // Or if address is "Some Road, POSTCODE" and marketPostcode is "POSTCODE"
-      // A simple way is to check if postcode is a substring. If address is short, this might be too aggressive.
-      // A more robust check: split address by comma or space and see if last part matches postcode.
       const addressParts = trimmedMarketAddress.split(/[\s,]+/);
       const postcodeParts = trimmedMarketPostcode.split(/[\s,]+/);
       let suffixMatches = false;
@@ -157,134 +260,19 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
   const capitalizeWords = (str: string) => {
     return str.replace(/\b\w/g, char => char.toUpperCase());
   };
-  
-  // Section styling helper
-  interface SectionCardProps {
-    title: string;
-    children: React.ReactNode;
-    isDebugMode?: boolean;
-  }
 
-  const SectionCard: React.FC<SectionCardProps> = ({ title, children, isDebugMode = false }) => {
-    // Debug style for the H2 title
-    const h2DebugStyle: CSSProperties = isDebugMode 
-      ? { border: '1px dashed cyan', boxSizing: 'border-box', margin: '0px', padding: '0px', lineHeight: '1' } 
-      : { margin: '0px', padding: '0px', lineHeight: '1' };
-
-    return (
-      <div 
-        className={`shadow-sm text-blue-900 ${isDebugMode ? 'debug-section' : ''} mb-[0.5rem]`}
-        style={{ paddingTop: '8px', paddingLeft: '12px', paddingRight: '12px', paddingBottom: '2px', backgroundColor: '#dbeafe', borderRadius: '0.5rem' }} 
-      >
-        <div className="flex items-center mb-0"> 
-          <h2 
-            className="text-lg font-semibold text-blue-900 mt-0 mb-0" 
-            style={h2DebugStyle} 
-          >
-            {title}
-          </h2>
-        </div>
-        <div 
-          className="m-0 p-0" 
-          style={isDebugMode ? { border: '1px solid black', boxSizing: 'border-box'} : {}}
-        >
-          {children}
-        </div>
-      </div>
-    );
-  };
-
-  // SubsectionWrapper component
-  interface SubsectionWrapperProps {
-    children: React.ReactNode;
-    isDebugMode?: boolean;
-    className?: string; 
-  }
-
-  const SubsectionWrapper: React.FC<SubsectionWrapperProps> = ({ children, isDebugMode, className }) => {
-    const style: CSSProperties = {
-      paddingTop: '8px',
-      paddingBottom: '8px',
-    };
-    if (isDebugMode) {
-      style.border = '1px dashed blue';
-      style.boxSizing = 'border-box';
-    }
-
-    return (
-      <div className={`p-4 max-w-2xl mx-auto h-full flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 ${className}`} style={style}>
-        {children}
-      </div>
-    );
-  };
-
-  // DetailItem component
-  interface DetailItemProps {
-    title: string;
-    children: React.ReactNode;
-    isDebugMode?: boolean;
-  }
-
-  const DetailItem: React.FC<DetailItemProps> = ({ title, children, isDebugMode }) => {
-    const headingStyle: CSSProperties = {
-      padding: '0px',
-      fontWeight: 'bold',
-      marginBottom: '4px', 
-    };
-    if (isDebugMode) {
-      headingStyle.border = '1px dashed green';
-      headingStyle.boxSizing = 'border-box';
-    }
-
-    return (
-      <>
-        <div
-          role="heading"
-          aria-level={3}
-          className="text-sm font-bold leading-none mt-2 mb-0 p-0 text-blue-900" 
-          style={headingStyle}
-        >
-          {title}
-        </div>
-        {children}
-      </>
-    );
-  };
-
-  // NEW DetailText component
-  interface DetailTextProps {
-    children: React.ReactNode;
-    isDebugMode?: boolean;
-    textColorClassName?: string;
-    key?: string | number; 
-  }
-
-  const DetailText: React.FC<DetailTextProps> = ({ children, isDebugMode, textColorClassName = "text-blue-900", key }) => {
-    const elementStyle: CSSProperties = {}; 
-    if (isDebugMode) {
-      elementStyle.border = '1px dashed orange';
-      elementStyle.boxSizing = 'border-box';
-    }
-    const classNames = `text-sm leading-normal mt-1 mb-0 p-0 ${textColorClassName}`;
-    return (
-      <div key={key} className={classNames} style={elementStyle}>
-        {children}
-      </div>
-    );
-  };
-
-  const HEADER_HEIGHT = '60px'; 
+  const HEADER_HEIGHT = '60px';
 
   return (
     <div 
       className="market-detail-viewport bg-white dark:bg-gray-900" 
       style={{
         position: 'relative',
-        height: '100vh', 
+        height: '100vh',
         overflow: 'hidden'
       }}
     >
-      {/* Absolutely Positioned Header */}
+      {/* Header */}
       <div 
         className="market-detail-header bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700"
         style={{
@@ -294,13 +282,11 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
           right: 0,
           height: HEADER_HEIGHT,
           zIndex: 10,
-          paddingLeft: '16px', 
+          paddingLeft: '16px',
           paddingRight: '16px'
         }}
       >
-        <div 
-          className="flex items-center justify-between h-full" 
-        >
+        <div className="flex items-center justify-between h-full">
           {/* Back button */}
           <button 
             onClick={onBack}
@@ -310,77 +296,61 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
             &lt; Back
           </button>
 
-          {/* Title or Market Name - centered (flex-grow, text-center) */}
+          {/* Title */}
           <h2 className="flex-grow text-center text-lg font-semibold text-gray-700 dark:text-gray-200 truncate px-2">
             {market.name}
           </h2>
 
           {/* Edit button or spacer */}
-          {onEdit && session && session.user && adminUserId && session.user.id === adminUserId ? (
+          {onEdit && session?.user?.id === adminUserId ? (
             <button 
-              onClick={() => onEdit(market)} 
-              className="p-2 rounded bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-700 active:bg-blue-700 dark:active:bg-blue-800 transition-colors text-sm font-medium"
+              onClick={() => onEdit(market)}
+              className="px-3 py-1 text-sm font-medium rounded-md bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
               aria-label="Edit market details"
             >
               Edit
             </button>
           ) : onEdit ? (
             <button 
-              className="p-2 rounded bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed text-sm font-medium"
+              className="px-3 py-1 text-sm font-medium rounded-md bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400 cursor-not-allowed"
               aria-label="Edit market details (disabled)"
               disabled
-              title={session && session.user ? "Editing restricted to admin users." : "Login required to edit."}
+              title={session ? "Editing restricted to admin users." : "Login required to edit."}
             >
               Edit
             </button>
           ) : (
-            <div style={{ width: '3.15rem' }} /> 
+            <div style={{ width: '3.15rem' }} />
           )}
         </div>
       </div>
 
-      {/* Absolutely Positioned Scrollable Content Area */}
+      {/* Scrollable Content */}
       <div 
-        className="market-detail-scroll-content hide-scrollbar"
+        className="market-detail-content overflow-y-auto"
         style={{
           position: 'absolute',
           top: HEADER_HEIGHT,
-          bottom: 0,
           left: 0,
           right: 0,
-          overflowY: 'auto',
-          paddingTop: '8px', 
-          paddingBottom: '16px',
-          paddingLeft: '16px', 
-          paddingRight: '16px'
+          bottom: 0,
+          padding: '16px',
+          paddingBottom: '24px',
+          overflowY: 'auto'
         }}
       >
-        {/* Market image - now part of scrollable content */}
+        {/* Market Image */}
         {imageUrl && (
-          <div 
-            className="shadow-sm mb-[0.5rem]" 
-            style={{
-              padding: '8px', 
-              backgroundColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#bfdbfe',
-              borderRadius: '0.5rem',
-              overflow: 'hidden',
-              ...(isDebugMode && { border: '2px dashed hotpink', boxSizing: 'border-box' }) 
-            }}
-          >
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"> 
-              <img
-                src={imageUrl}
-                alt={`${market.name}`}
-                className="w-full h-auto object-cover" 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
+          <div className="mb-4 rounded-lg overflow-hidden shadow-md">
+            <img 
+              src={imageUrl} 
+              alt={market.name} 
+              className="w-full h-48 object-cover"
+            />
           </div>
         )}
-        
-        {/* WHERE section */}
+
+        {/* Where Section */}
         <SectionCard title="Where" isDebugMode={isDebugMode}>
           {displayAddress.trim() && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
@@ -393,31 +363,21 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
           )}
           
           {(directionsUrls.google || directionsUrls.apple) && (
-            <SubsectionWrapper className="mt-0.5" isDebugMode={isDebugMode}>
+            <SubsectionWrapper className="mt-2" isDebugMode={isDebugMode}>
               <DetailItem title="Directions" isDebugMode={isDebugMode}>
-                <div className="flex gap-2" style={isDebugMode ? { border: '1px dashed purple', boxSizing: 'border-box' } : {}}>
+                <div className="flex gap-2">
                   {directionsUrls.google && (
                     <button 
-                      onClick={() => {
-                        if (directionsUrls.google) {
-                          window.open(directionsUrls.google, '_blank');
-                        }
-                      }}
-                      className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-center flex-1"
-                      style={isDebugMode ? { border: '1px dashed red', boxSizing: 'border-box' } : {}}
+                      onClick={() => window.open(directionsUrls.google!, '_blank')}
+                      className="flex-1 px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
                     >
                       Google Maps
                     </button>
                   )}
-                  {directionsUrls.apple && (
+                  {directionsUrls.apple && isMobileDevice && (
                     <button 
-                      onClick={() => {
-                      if (directionsUrls.apple) {
-                        window.open(directionsUrls.apple, '_blank');
-                      }
-                    }}
-                      className="bg-gray-600 text-white px-3 py-1.5 rounded-md hover:bg-gray-700 transition-colors text-center flex-1"
-                      style={isDebugMode ? { border: '1px dashed red', boxSizing: 'border-box' } : {}}
+                      onClick={() => window.open(directionsUrls.apple!, '_blank')}
+                      className="flex-1 px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
                     >
                       Apple Maps
                     </button>
@@ -427,8 +387,8 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
             </SubsectionWrapper>
           )}
         </SectionCard>
-        
-        {/* WHEN section */}
+
+        {/* When Section */}
         <SectionCard title="When" isDebugMode={isDebugMode}>
           {market.opening_hours && (
             <SubsectionWrapper isDebugMode={isDebugMode}>
@@ -448,97 +408,116 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
                       </DetailText>
                     );
                   }
-                  return null; 
+                  return null;
                 })()}
               </DetailItem>
             </SubsectionWrapper>
           )}
           
-          {nextThreeOpenings && nextThreeOpenings.length > 0 && (
-            <SubsectionWrapper className="mt-1" isDebugMode={isDebugMode}>
+          {nextThreeOpenings.length > 0 && (
+            <SubsectionWrapper className="mt-2" isDebugMode={isDebugMode}>
               <DetailItem title="Next Dates" isDebugMode={isDebugMode}>
-                {nextThreeOpenings.length > 0 ? (
-                  <div className="space-y-1" style={isDebugMode ? { border: '1px dashed purple', boxSizing: 'border-box' } : {}}>
-                    {nextThreeOpenings.map((opening, index) => (
-                      <div key={index} className="rounded-md leading-tight py-0.5 px-1 text-sm text-blue-900" 
-                          style={{ backgroundColor: '#edf5ff', ...(isDebugMode && { border: '1px dashed teal', boxSizing: 'border-box' }) }}>
-                          {opening.startTime && opening.endTime ? (
-                            <DetailText isDebugMode={isDebugMode}>
-                              {format(parseISO(opening.date!), 'EEEE, MMMM d')} {opening.startTime} to {opening.endTime}
-                            </DetailText>
-                          ) : (
-                            <DetailText isDebugMode={isDebugMode}>
-                              {format(parseISO(opening.date!), 'EEEE, MMMM d')} (Times TBC)
-                            </DetailText>
-                          )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <DetailText isDebugMode={isDebugMode} textColorClassName="text-blue-900">
-                    No upcoming dates available
-                  </DetailText>
-                )}
-              </DetailItem>
-            </SubsectionWrapper>
-          )}
-        </SectionCard>
-        
-        {/* WHAT section */}
-        <SectionCard title="What" isDebugMode={isDebugMode}>
-          {/* Website URL */}
-          {market.website_url && (
-            <SubsectionWrapper isDebugMode={isDebugMode}>
-              <DetailItem title="Website URL" isDebugMode={isDebugMode}>
-                <DetailText isDebugMode={isDebugMode} textColorClassName="text-blue-900 hover:underline">
-                  <a href={market.website_url} target="_blank" rel="noopener noreferrer">
-                    {market.website_url}
-                  </a>
-                </DetailText>
-              </DetailItem>
-            </SubsectionWrapper>
-          )}
-          
-          {/* Description */}
-          {market.description && (
-            <SubsectionWrapper 
-              isDebugMode={isDebugMode} 
-              className={market.website_url ? 'mt-2' : ''} 
-            >
-              <DetailItem title="Description" isDebugMode={isDebugMode}>
-                <DetailText isDebugMode={isDebugMode}>
-                  {market.description}
-                </DetailText>
-              </DetailItem>
-            </SubsectionWrapper>
-          )}
-          
-          {/* Categories */}
-          {market.categories && market.categories.length > 0 && (
-            <SubsectionWrapper 
-              isDebugMode={isDebugMode} 
-              className={market.website_url || market.description ? "mt-2" : ""}
-            >
-              <DetailItem title="Categories" isDebugMode={isDebugMode}>
-                <div className="flex flex-wrap gap-1 mt-0.5" style={isDebugMode ? { border: '1px dashed purple', boxSizing: 'border-box' } : {}}>
-                  {market.categories.map((category, index) => (
-                    <div key={index} className="flex items-center text-sm text-blue-900 leading-tight" style={isDebugMode ? { border: '1px dashed teal', boxSizing: 'border-box' } : {}}>
-                      <img
-                        src={getCategoryIconUrl(category)}
-                        alt=""
-                        className="w-[16px] h-[16px] mr-1"
-                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                      />
-                      <DetailText isDebugMode={isDebugMode}>
-                        {capitalizeWords(category)}
-                      </DetailText>
+                <div className="space-y-2">
+                  {nextThreeOpenings.map((opening, index) => (
+                    <div 
+                      key={index} 
+                      className="bg-blue-50 dark:bg-blue-900/30 rounded-md p-2"
+                    >
+                      {opening.startTime && opening.endTime ? (
+                        <DetailText isDebugMode={isDebugMode}>
+                          {format(parseISO(opening.date!), 'EEEE, MMMM d')} • {opening.startTime} - {opening.endTime}
+                        </DetailText>
+                      ) : (
+                        <DetailText isDebugMode={isDebugMode}>
+                          {format(parseISO(opening.date!), 'EEEE, MMMM d')} (Times TBC)
+                        </DetailText>
+                      )}
                     </div>
                   ))}
                 </div>
               </DetailItem>
             </SubsectionWrapper>
           )}
-        </SectionCard>        
+        </SectionCard>
+
+        {/* What Section */}
+        <SectionCard title="What" isDebugMode={isDebugMode}>
+          {/* Website */}
+          {market.website && (
+            <SubsectionWrapper isDebugMode={isDebugMode}>
+              <DetailItem title="Website" isDebugMode={isDebugMode}>
+                <a 
+                  href={market.website.startsWith('http') ? market.website : `https://${market.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  {market.website.replace(/^https?:\/\//, '')}
+                </a>
+              </DetailItem>
+            </SubsectionWrapper>
+          )}
+
+          {/* Description */}
+          {market.description && (
+            <SubsectionWrapper className="mt-2" isDebugMode={isDebugMode}>
+              <DetailItem title="About" isDebugMode={isDebugMode}>
+                <DetailText isDebugMode={isDebugMode}>
+                  {market.description}
+                </DetailText>
+              </DetailItem>
+            </SubsectionWrapper>
+          )}
+
+          {/* Categories */}
+          {market.categories && market.categories.length > 0 && (
+            <SubsectionWrapper className="mt-2" isDebugMode={isDebugMode}>
+              <DetailItem title="Categories" isDebugMode={isDebugMode}>
+                <div className="flex flex-wrap gap-2">
+                  {market.categories.map((category, index) => (
+                    <span 
+                      key={index}
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    >
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              </DetailItem>
+            </SubsectionWrapper>
+          )}
+        </SectionCard>
+
+        {/* Contact Section */}
+        {(market.email || market.phone) && (
+          <SectionCard title="Contact" isDebugMode={isDebugMode}>
+            {market.email && (
+              <SubsectionWrapper isDebugMode={isDebugMode}>
+                <DetailItem title="Email" isDebugMode={isDebugMode}>
+                  <a 
+                    href={`mailto:${market.email}`}
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    {market.email}
+                  </a>
+                </DetailItem>
+              </SubsectionWrapper>
+            )}
+            
+            {market.phone && (
+              <SubsectionWrapper className={market.email ? 'mt-2' : ''} isDebugMode={isDebugMode}>
+                <DetailItem title="Phone" isDebugMode={isDebugMode}>
+                  <a 
+                    href={`tel:${market.phone.replace(/\D/g, '')}`}
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    {market.phone}
+                  </a>
+                </DetailItem>
+              </SubsectionWrapper>
+            )}
+          </SectionCard>
+        )}
       </div>
     </div>
   );
