@@ -34,23 +34,27 @@ export function AppHeader({
   }
 
   return (
-    <header className="z-10 bg-white p-4">
+    <header className="z-10 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
       {/* Mode toggles */}
       <div className="flex justify-between items-center">
         {/* WHEN toggle: Soon vs Week */}
         <div 
-          className="inline-flex bg-gray-200 rounded when-mode-toggle" 
+          className="inline-flex bg-gray-200 dark:bg-gray-700 rounded when-mode-toggle" 
           style={soonWeekToggleContainerStyle}
         >
           <button
             onClick={() => setCurrentWhenMode('soon')}
-            className={`date-button ${currentWhenMode === 'soon' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-md transition-colors ${currentWhenMode === 'soon' 
+            ? 'bg-blue-600 text-white dark:bg-blue-700' 
+            : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
           >
             Soon Mode
           </button>
           <button
             onClick={() => setCurrentWhenMode('week')}
-            className={`date-button ${currentWhenMode === 'week' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-md transition-colors ${currentWhenMode === 'week' 
+            ? 'bg-blue-600 text-white dark:bg-blue-700' 
+            : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
           >
             Week Mode
           </button>
@@ -59,7 +63,7 @@ export function AppHeader({
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setDebugMode(!debugMode)}
-            className="text-xs px-2 py-1 bg-gray-200 rounded"
+            className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
           >
             {debugMode ? 'Debug Mode On' : 'Debug Mode'}
           </button>
@@ -83,16 +87,20 @@ export function AppHeader({
         </div>
 
         {/* VIEW toggle: List vs Map */}
-        <div className="inline-flex bg-gray-200 rounded p-1">
+        <div className="inline-flex bg-gray-200 dark:bg-gray-700 rounded p-1">
           <button
             onClick={() => setViewMode('list')}
-            className={`date-button ${viewMode === 'list' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'list' 
+              ? 'bg-blue-600 text-white dark:bg-blue-700' 
+              : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
           >
             List View
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`date-button ${viewMode === 'map' ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'map' 
+              ? 'bg-blue-600 text-white dark:bg-blue-700' 
+              : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
           >
             Map View
           </button>

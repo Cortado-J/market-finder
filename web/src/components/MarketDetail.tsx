@@ -212,7 +212,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
     }
 
     return (
-      <div className={className} style={style}>
+      <div className={`p-4 max-w-2xl mx-auto h-full flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 ${className}`} style={style}>
         {children}
       </div>
     );
@@ -277,7 +277,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
 
   return (
     <div 
-      className="market-detail-viewport bg-white" 
+      className="market-detail-viewport bg-white dark:bg-gray-900" 
       style={{
         position: 'relative',
         height: '100vh', 
@@ -286,7 +286,7 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
     >
       {/* Absolutely Positioned Header */}
       <div 
-        className="market-detail-header bg-white border-b border-gray-200"
+        className="market-detail-header bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700"
         style={{
           position: 'absolute',
           top: 0,
@@ -304,14 +304,14 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
           {/* Back button */}
           <button 
             onClick={onBack}
-            className="p-2 rounded hover:bg-gray-200 active:bg-gray-300 transition-colors text-sm font-medium text-blue-600"
+            className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-gray-300 dark:active:bg-gray-600 transition-colors text-sm font-medium text-blue-600 dark:text-blue-400"
             aria-label="Back to list"
           >
             &lt; Back
           </button>
 
           {/* Title or Market Name - centered (flex-grow, text-center) */}
-          <h2 className="flex-grow text-center text-lg font-semibold text-gray-700 truncate px-2">
+          <h2 className="flex-grow text-center text-lg font-semibold text-gray-700 dark:text-gray-200 truncate px-2">
             {market.name}
           </h2>
 
@@ -319,14 +319,14 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
           {onEdit && session && session.user && adminUserId && session.user.id === adminUserId ? (
             <button 
               onClick={() => onEdit(market)} 
-              className="p-2 rounded bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors text-sm font-medium"
+              className="p-2 rounded bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-700 active:bg-blue-700 dark:active:bg-blue-800 transition-colors text-sm font-medium"
               aria-label="Edit market details"
             >
               Edit
             </button>
           ) : onEdit ? (
             <button 
-              className="p-2 rounded bg-gray-300 text-gray-500 cursor-not-allowed text-sm font-medium"
+              className="p-2 rounded bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed text-sm font-medium"
               aria-label="Edit market details (disabled)"
               disabled
               title={session && session.user ? "Editing restricted to admin users." : "Login required to edit."}
@@ -361,13 +361,13 @@ export function MarketDetail({ market, onBack, onEdit, marketNextOpening, isDebu
             className="shadow-sm mb-[0.5rem]" 
             style={{
               padding: '8px', 
-              backgroundColor: '#bfdbfe',
+              backgroundColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#bfdbfe',
               borderRadius: '0.5rem',
               overflow: 'hidden',
               ...(isDebugMode && { border: '2px dashed hotpink', boxSizing: 'border-box' }) 
             }}
           >
-            <div className="rounded-lg overflow-hidden"> 
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"> 
               <img
                 src={imageUrl}
                 alt={`${market.name}`}

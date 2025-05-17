@@ -228,6 +228,14 @@ function App() {
   }, [setViewMode]); // setViewMode is stable and ensures the effect uses the latest setter
 
   // Render Login view if viewMode is 'login'
+  // Enable dark mode by default
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
+  // Check if we should show Tailwind test components
+  const showTailwindTests = import.meta.env.VITE_SHOW_TAILWIND_TESTS === 'true';
+
   if (viewMode === 'login') {
     return <Login />;
   }
@@ -235,11 +243,8 @@ function App() {
   if (loading) return <div className="p-4">Loading markets...</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
-  // Check if we should show Tailwind test components
-  const showTailwindTests = import.meta.env.VITE_SHOW_TAILWIND_TESTS === 'true';
-
   return (
-    <div className="app flex flex-col h-screen">
+    <div className="app flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Test Components - Only shown when VITE_SHOW_TAILWIND_TESTS=true */}
       {showTailwindTests && (
         <div className="fixed top-4 right-4 z-50 flex flex-col gap-4">

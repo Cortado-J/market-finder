@@ -136,13 +136,13 @@ export function MarketList({
               <div
                 key={market.market_id}
                 className={cn(
-                  "p-4 bg-blue-50 rounded-lg shadow-sm relative cursor-pointer hover:bg-blue-100 transition-colors",
+                  "p-4 bg-blue-50 dark:bg-gray-800 rounded-lg shadow-sm relative cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors",
                   selectedMarket?.market_id === market.market_id && "ring-2 ring-blue-500"
                 )}
                 onClick={() => onMarketSelect(market)}
               >
                 <div className="flex items-start">
-                  <div className="market-image-container w-24 h-24 md:w-28 md:h-28 ml-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 flex items-center justify-center relative">
+                  <div className="market-image-container w-24 h-24 md:w-28 md:h-28 ml-3 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 dark:bg-gray-700 flex items-center justify-center relative">
                     {market.market_ref ? (
                       <img 
                         src={getMarketImageUrl(market.market_ref)}
@@ -154,7 +154,7 @@ export function MarketList({
                     {/* Fallback to initials if no image or image fails to load */}
                     <div 
                       className={cn(
-                        "absolute inset-0 w-full h-full items-center justify-center text-blue-800 font-bold text-xs",
+                        "absolute inset-0 w-full h-full items-center justify-center text-blue-800 dark:text-blue-200 font-bold text-xs",
                         market.market_ref ? "hidden" : "flex"
                       )}
                     >
@@ -165,7 +165,7 @@ export function MarketList({
                   <div className="flex-grow">
                     {/* Title only */}
                     <div className="flex justify-between items-start mb-0.5">
-                      <h3 className="market-name text-lg font-semibold text-blue-900 break-words leading-normal">{market.name}</h3>
+                      <h3 className="market-name text-lg font-semibold text-blue-900 dark:text-blue-100 break-words leading-normal">{market.name}</h3>
                     </div>
                     
                     {/* Open On (Soon mode) or Next Open (All modes) - hidden in Week mode */}
