@@ -29,14 +29,12 @@ export function WhenModeToggle({
       <ToggleButton
         isActive={mode === 'soon'}
         onClick={() => handleModeChange('soon')}
-        asContainer={false}
       >
         Soon Mode
       </ToggleButton>
       <ToggleButton
         isActive={mode === 'week'}
         onClick={() => handleModeChange('week')}
-        asContainer={false}
       >
         Week Mode
       </ToggleButton>
