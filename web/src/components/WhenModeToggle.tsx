@@ -25,19 +25,29 @@ export function WhenModeToggle({
   };
 
   return (
-    <div className={className}>
-      <ToggleButton
-        isActive={mode === 'soon'}
-        onClick={() => handleModeChange('soon')}
-      >
-        Soon Mode
-      </ToggleButton>
-      <ToggleButton
-        isActive={mode === 'week'}
-        onClick={() => handleModeChange('week')}
-      >
-        Week Mode
-      </ToggleButton>
+    <div className={`flex items-center space-x-2 ${className}`}>
+      <div className="flex flex-col items-center">
+        <ToggleButton
+          variant="square"
+          isActive={mode === 'soon'}
+          onClick={() => handleModeChange('soon')}
+          title="Show markets opening soon"
+        >
+          S
+        </ToggleButton>
+        <span className="text-xs mt-1 text-gray-400">Soon</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <ToggleButton
+          variant="square"
+          isActive={mode === 'week'}
+          onClick={() => handleModeChange('week')}
+          title="Show markets by day of week"
+        >
+          W
+        </ToggleButton>
+        <span className="text-xs mt-1 text-gray-400">Week</span>
+      </div>
     </div>
   );
 }

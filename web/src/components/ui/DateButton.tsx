@@ -1,4 +1,4 @@
-import React from 'react';
+import { BaseButton } from './BaseButton';
 
 interface DateButtonProps {
   children: React.ReactNode;
@@ -18,21 +18,14 @@ export function DateButton({
   debugMode = false
 }: DateButtonProps) {
   return (
-    <button
-      type="button"
+    <BaseButton
+      isActive={isActive}
       onClick={onClick}
+      className={className}
       title={title}
-      className={`
-        px-4 py-2 transition-colors text-sm rounded-md
-        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-        ${isActive 
-          ? 'bg-gray-600 text-white' 
-          : 'bg-transparent text-gray-300 hover:bg-gray-700'}
-        ${debugMode ? 'border-2 border-hotpink box-border' : ''}
-        ${className}
-      `}
+      variant={debugMode ? 'debug' : 'default'}
     >
       {children}
-    </button>
+    </BaseButton>
   );
 }

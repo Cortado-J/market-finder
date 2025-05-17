@@ -43,7 +43,7 @@ export function AppHeader({
       {/* Mode toggles */}
       <div className="flex justify-between items-center space-x-4">
         {/* WHEN toggle: Soon vs Week */}
-        <div className="inline-flex bg-gray-700 rounded-lg p-1">
+        <div className="inline-flex bg-gray-700 rounded-lg p-1.5">
           <DateButton
             isActive={currentWhenMode === 'soon'}
             onClick={() => setCurrentWhenMode('soon')}

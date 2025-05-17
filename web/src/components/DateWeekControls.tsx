@@ -30,7 +30,7 @@ export function DateWeekControls({
       className={cn("z-30 bg-gray-800 overflow-hidden", mainClass)}
     >
       {currentWhenMode === 'soon' && (
-        <div className={cn("px-4 pt-3 pb-3", soonContainerClass)}>
+        <div className={cn("px-3 pt-3 pb-3", soonContainerClass)}>
           <DateSelector 
             currentDateFilter={currentDateFilter}
             onDateFilterChange={onDateFilterChange}
@@ -39,7 +39,7 @@ export function DateWeekControls({
         </div>
       )}
       {currentWhenMode === 'week' && (
-        <div className={cn("px-4 pt-3 pb-3", weekContainerClass)}>
+        <div className={cn("px-3 pt-3 pb-3", weekContainerClass)}>
           <WeekdaySelector 
             selectedDays={selectedWeekdays}
             onChange={onWeekdaysChange}

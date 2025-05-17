@@ -1,4 +1,4 @@
-import { cn } from '../../lib/utils';
+import { BaseButton } from './BaseButton';
 
 interface ToggleButtonProps {
   children: React.ReactNode;
@@ -6,6 +6,7 @@ interface ToggleButtonProps {
   onClick: () => void;
   className?: string;
   title?: string;
+  variant?: 'default' | 'square';
 }
 
 export function ToggleButton({ 
@@ -13,23 +14,18 @@ export function ToggleButton({
   isActive, 
   onClick, 
   className = '',
-  title = ''
+  title = '',
+  variant = 'default'
 }: ToggleButtonProps) {
   return (
-    <button
-      type="button"
+    <BaseButton
+      isActive={isActive}
       onClick={onClick}
+      className={className}
       title={title}
-      className={`
-        px-4 py-2 transition-colors text-sm rounded-md
-        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-        ${isActive 
-          ? 'bg-gray-600 text-white' 
-          : 'bg-transparent text-gray-300 hover:bg-gray-700'}
-        ${className}
-      `}
+      variant={variant}
     >
       {children}
-    </button>
+    </BaseButton>
   );
 }
