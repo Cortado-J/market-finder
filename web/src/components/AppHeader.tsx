@@ -34,27 +34,27 @@ export function AppHeader({
   }
 
   return (
-    <header className="z-10 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
+    <header className="z-10 bg-gray-800 p-4 border-b border-gray-700">
       {/* Mode toggles */}
       <div className="flex justify-between items-center">
         {/* WHEN toggle: Soon vs Week */}
         <div 
-          className="inline-flex bg-gray-200 dark:bg-gray-700 rounded when-mode-toggle" 
+          className="inline-flex bg-gray-700 rounded when-mode-toggle" 
           style={soonWeekToggleContainerStyle}
         >
           <button
             onClick={() => setCurrentWhenMode('soon')}
             className={`px-4 py-2 rounded-md transition-colors ${currentWhenMode === 'soon' 
-            ? 'bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white' 
-            : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+            ? 'bg-gray-600 text-white' 
+            : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
           >
             Soon Mode
           </button>
           <button
             onClick={() => setCurrentWhenMode('week')}
             className={`px-4 py-2 rounded-md transition-colors ${currentWhenMode === 'week' 
-            ? 'bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white' 
-            : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+            ? 'bg-gray-600 text-white' 
+            : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
           >
             Week Mode
           </button>
@@ -63,7 +63,7 @@ export function AppHeader({
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setDebugMode(!debugMode)}
-            className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+            className="text-xs px-2 py-1 bg-gray-700 text-gray-200 rounded hover:bg-gray-600"
           >
             {debugMode ? 'Debug Mode On' : 'Debug Mode'}
           </button>
@@ -72,14 +72,14 @@ export function AppHeader({
           {session ? (
             <button
               onClick={onLogout}
-              className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
             >
               Logout
             </button>
           ) : (
             <button
               onClick={onLogin}
-              className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Login
             </button>
@@ -87,20 +87,20 @@ export function AppHeader({
         </div>
 
         {/* VIEW toggle: List vs Map */}
-        <div className="inline-flex bg-gray-200 dark:bg-gray-700 rounded p-1">
+        <div className="inline-flex bg-gray-700 rounded p-1">
           <button
             onClick={() => setViewMode('list')}
             className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'list' 
-              ? 'bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white' 
-              : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+              ? 'bg-gray-600 text-white' 
+              : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
           >
             List View
           </button>
           <button
             onClick={() => setViewMode('map')}
             className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'map' 
-              ? 'bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white' 
-              : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+              ? 'bg-gray-600 text-white' 
+              : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
           >
             Map View
           </button>

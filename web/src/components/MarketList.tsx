@@ -136,13 +136,13 @@ export function MarketList({
               <div
                 key={market.market_id}
                 className={cn(
-                  "p-4 bg-blue-50 dark:bg-gray-800 rounded-lg shadow-sm relative cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors",
+                  "p-3 bg-gray-800 rounded-lg shadow-sm relative cursor-pointer hover:bg-gray-700 transition-colors",
                   selectedMarket?.market_id === market.market_id && "ring-2 ring-blue-500"
                 )}
                 onClick={() => onMarketSelect(market)}
               >
                 <div className="flex items-start">
-                  <div className="market-image-container w-24 h-24 md:w-28 md:h-28 ml-3 mr-4 rounded-md overflow-hidden flex-shrink-0 bg-blue-100 dark:bg-gray-700 flex items-center justify-center relative">
+                  <div className="market-image-container w-24 h-24 md:w-28 md:h-28 ml-3 mr-4 rounded-md overflow-hidden flex-shrink-0 bg-gray-700 flex items-center justify-center relative">
                     {market.market_ref ? (
                       <img 
                         src={getMarketImageUrl(market.market_ref)}
@@ -170,12 +170,12 @@ export function MarketList({
                     
                     {/* Open On (Soon mode) or Next Open (All modes) - hidden in Week mode */}
                     {selectedDayCode ? (
-                      <p className="text-sm mt-1 text-gray-700 dark:text-gray-300">
+                      <p className="text-sm mt-1 text-gray-300">
                         <span className="font-bold">{humanizeOpeningForDay(market.opening_hours || '', selectedDayCode)}</span>
                       </p>
                     ) : !isWeekMode && nextOpening && (
                       <p className="mt-1 inline-block">
-                        <span className="font-bold inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        <span className="font-bold inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-600 text-white">
                           <OpenOn opening={nextOpening} className="font-bold" />
                         </span>
                       </p>
@@ -197,7 +197,7 @@ export function MarketList({
                     
                     {/* Address and distance (moved to bottom) - combined into one text element */}
                     {market.address && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-gray-400 mt-1">
                         {market.address} {distance && `(${Math.round(distance * 0.621371)} miles)`}
                       </p>
                     )}
