@@ -1,6 +1,8 @@
 import React from 'react';
 import { WhenMode } from './WhenModeToggle';
 import { Session } from '@supabase/supabase-js'; // Import Session type
+import { ToggleButton } from './ui/ToggleButton';
+import { DateButton } from './ui/DateButton';
 
 // Define the view modes that the header can handle
 type HeaderViewMode = 'list' | 'map';
@@ -39,29 +41,26 @@ export function AppHeader({
   return (
     <header className="z-10 bg-gray-800 p-4 border-b border-gray-700">
       {/* Mode toggles */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center space-x-4">
         {/* WHEN toggle: Soon vs Week */}
-        <div 
-          className="inline-flex bg-gray-700 rounded when-mode-toggle" 
-          style={soonWeekToggleContainerStyle}
-        >
-          <button
+        <div className="inline-flex bg-gray-700 rounded-lg p-1">
+          <DateButton
+            isActive={currentWhenMode === 'soon'}
             onClick={() => setCurrentWhenMode('soon')}
-            className={`px-4 py-2 rounded-md transition-colors ${currentWhenMode === 'soon' 
-            ? 'bg-gray-600 text-white' 
-            : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
+            className="px-4"
           >
             Soon Mode
-          </button>
-          <button
+          </DateButton>
+          <DateButton
+            isActive={currentWhenMode === 'week'}
             onClick={() => setCurrentWhenMode('week')}
-            className={`px-4 py-2 rounded-md transition-colors ${currentWhenMode === 'week' 
-            ? 'bg-gray-600 text-white' 
-            : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
+            className="px-4"
           >
             Week Mode
-          </button>
+          </DateButton>
         </div>
+        
+        <div className="flex-1" /> {/* Spacer to push other elements to the right */}
         
         <div className="flex items-center space-x-2">
           <button
@@ -91,22 +90,20 @@ export function AppHeader({
 
         {/* VIEW toggle: List vs Map */}
         <div className="inline-flex bg-gray-700 rounded-lg p-1">
-          <button
+          <DateButton
+            isActive={viewMode === 'list'}
             onClick={() => setViewMode('list')}
-            className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'list' 
-              ? 'bg-gray-600 text-white' 
-              : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
+            className="px-4"
           >
             List View
-          </button>
-          <button
+          </DateButton>
+          <DateButton
+            isActive={viewMode === 'map'}
             onClick={() => setViewMode('map')}
-            className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'map' 
-              ? 'bg-gray-600 text-white' 
-              : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
+            className="px-4"
           >
             Map View
-          </button>
+          </DateButton>
         </div>
       </div>
     </header>

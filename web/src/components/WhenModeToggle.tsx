@@ -1,18 +1,21 @@
 import { useState } from 'react';
+import { ToggleButton } from './ui/ToggleButton';
 
 export type WhenMode = 'soon' | 'week';
 
 interface WhenModeToggleProps {
   initialMode?: WhenMode;
   onModeChange: (mode: WhenMode) => void;
+  className?: string;
 }
 
 /**
- * Toggle component for switching between "Soon" and "Schedule" modes
+ * Toggle component for switching between "Soon" and "Week" modes
  */
 export function WhenModeToggle({ 
   initialMode = 'soon', 
-  onModeChange 
+  onModeChange,
+  className = ''
 }: WhenModeToggleProps) {
   const [mode, setMode] = useState<WhenMode>(initialMode);
 
@@ -22,23 +25,21 @@ export function WhenModeToggle({
   };
 
   return (
-    <div className="inline-flex bg-gray-700 rounded-lg p-1">
-      <button
+    <div className={className}>
+      <ToggleButton
+        isActive={mode === 'soon'}
         onClick={() => handleModeChange('soon')}
-        className={`px-4 py-2 rounded-md transition-colors ${mode === 'soon' 
-          ? 'bg-gray-600 text-white' 
-          : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
+        asContainer={false}
       >
-        Soon
-      </button>
-      <button
+        Soon Mode
+      </ToggleButton>
+      <ToggleButton
+        isActive={mode === 'week'}
         onClick={() => handleModeChange('week')}
-        className={`px-4 py-2 rounded-md transition-colors ${mode === 'week' 
-          ? 'bg-gray-600 text-white' 
-          : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
+        asContainer={false}
       >
-        Week
-      </button>
+        Week Mode
+      </ToggleButton>
     </div>
   );
 }
