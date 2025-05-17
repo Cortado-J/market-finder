@@ -24,7 +24,7 @@ export function BaseButton({
   const sizeClasses = {
     sm: 'p-1.5 text-xs',
     md: 'p-2 text-sm',
-    lg: 'p-3 text-base'
+    lg: 'p-5 text-base'
   };
 
   const baseClasses = `transition-colors rounded-md ${sizeClasses[size]}`;
@@ -35,7 +35,7 @@ export function BaseButton({
       ? 'bg-gray-600 text-white' 
       : 'bg-transparent text-gray-300 hover:bg-gray-700',
     debug: 'border-2 border-hotpink box-border',
-    square: 'flex items-center justify-center w-10 h-10 p-0 m-0',
+    square: 'flex items-center justify-center w-10 h-10 p-0 m-0 text-base font-medium',
     'square-active': 'bg-gray-600 text-white',
     'square-inactive': 'bg-transparent text-gray-300 hover:bg-gray-700'
   };

@@ -25,7 +25,7 @@ export function WhenModeToggle({
   };
 
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
+    <div className={`flex items-center space-x-0.5 ${className}`}>
       <div className="flex flex-col items-center">
         <ToggleButton
           variant="square"
@@ -35,7 +35,7 @@ export function WhenModeToggle({
         >
           S
         </ToggleButton>
-        <span className="text-xs mt-1 text-gray-400">Soon</span>
+        <span className="text-xs mt-0.5 text-gray-400">Soon</span>
       </div>
       <div className="flex flex-col items-center">
         <ToggleButton
@@ -46,7 +46,7 @@ export function WhenModeToggle({
         >
           W
         </ToggleButton>
-        <span className="text-xs mt-1 text-gray-400">Week</span>
+        <span className="text-xs mt-0.5 text-gray-400">Week</span>
       </div>
     </div>
   );

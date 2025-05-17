@@ -39,7 +39,7 @@ export function AppHeader({
   }
 
   return (
-    <header className="z-10 bg-gray-800 p-4 border-b border-gray-700">
+    <header className="z-10 bg-gray-800 p-2 border-b border-gray-700">
       {/* Mode toggles */}
       <div className="flex justify-between items-center space-x-4">
         {/* WHEN toggle: Soon vs Week */}
@@ -47,16 +47,16 @@ export function AppHeader({
           <DateButton
             isActive={currentWhenMode === 'soon'}
             onClick={() => setCurrentWhenMode('soon')}
-            className="px-4"
+            className="px-2"
           >
-            Soon Mode
+            Soon
           </DateButton>
           <DateButton
             isActive={currentWhenMode === 'week'}
             onClick={() => setCurrentWhenMode('week')}
-            className="px-4"
+            className="px-2"
           >
-            Week Mode
+            Week
           </DateButton>
         </div>
         
@@ -93,16 +93,16 @@ export function AppHeader({
           <DateButton
             isActive={viewMode === 'list'}
             onClick={() => setViewMode('list')}
-            className="px-4"
+            className="px-2"
           >
-            List View
+            List
           </DateButton>
           <DateButton
             isActive={viewMode === 'map'}
             onClick={() => setViewMode('map')}
-            className="px-4"
+            className="px-2"
           >
-            Map View
+            Map
           </DateButton>
         </div>
       </div>
