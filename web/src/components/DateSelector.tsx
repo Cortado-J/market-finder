@@ -45,66 +45,68 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
         className="flex flex-nowrap overflow-x-auto touch-pan-x py-1.5 px-2 -mx-2 scrollbar-hide bg-gray-800"
       >
         {/* Today button */}
-        <DateModeButton
-          label={
-              <>
-                  <span className="font-bold block mb-1">Today</span>
-                  <span className="text-base block">{format(new Date(), 'd')}</span>
-              </>
-          }
-          onClick={() => onDateFilterChange('today')}
-          isActive={currentDateFilter === 'today'}
-          debugMode={debugMode}
-        />
-        
-        {/* Tomorrow button */}
-        <DateModeButton
-          label={
-              <>
-                  <span className="font-bold block mb-1">{format(addDays(new Date(), 1), 'EEE')}</span>
-                  <span className="text-base block">{format(addDays(new Date(), 1), 'd')}</span>
-              </>
-          }
-          onClick={() => onDateFilterChange('tomorrow')}
-          isActive={currentDateFilter === 'tomorrow'}
-          debugMode={debugMode}
-        />
-        
-        {/* Next 5 days as individual buttons */}
-        {Array.from({ length: 5 }).map((_, index) => {
-          const dayNum = index + 3;
-          const date = addDays(new Date(), index + 2);
-          const dayName = format(date, 'EEE');
-          const dayOfMonth = date.getDate();
-          const filterName = `day-${dayNum}` as DateFilter;
-          return (
-            <DateModeButton
-              key={filterName}
-              label={
+        <div className="flex space-x-2 px-2">
+          <DateModeButton
+            label={
                 <>
-                  <span className="font-bold block mb-1">{dayName}</span>
-                  <span className="text-base block">{dayOfMonth}</span>
+                    <span className="font-bold block mb-1">Today</span>
+                    <span className="text-base block">{format(new Date(), 'd')}</span>
                 </>
-              }
-              onClick={() => onDateFilterChange(filterName)}
-              isActive={currentDateFilter === filterName}
-              debugMode={debugMode}
-            />
-          );
-        })}
-        
-        {/* Next 14 days button */}
-        <DateModeButton
-          label={
-              <>
-                  <span className="font-bold block mb-1">14 Days</span>
-                  <span className="text-base block">View</span>
-              </>
-          }
-          onClick={() => onDateFilterChange('next-14-days')}
-          isActive={currentDateFilter === 'next-14-days'}
-          debugMode={debugMode}
-        />
+            }
+            onClick={() => onDateFilterChange('today')}
+            isActive={currentDateFilter === 'today'}
+            debugMode={debugMode}
+          />
+          
+          {/* Tomorrow button */}
+          <DateModeButton
+            label={
+                <>
+                    <span className="font-bold block mb-1">{format(addDays(new Date(), 1), 'EEE')}</span>
+                    <span className="text-base block">{format(addDays(new Date(), 1), 'd')}</span>
+                </>
+            }
+            onClick={() => onDateFilterChange('tomorrow')}
+            isActive={currentDateFilter === 'tomorrow'}
+            debugMode={debugMode}
+          />
+          
+          {/* Next 5 days as individual buttons */}
+          {Array.from({ length: 5 }).map((_, index) => {
+            const dayNum = index + 3;
+            const date = addDays(new Date(), index + 2);
+            const dayName = format(date, 'EEE');
+            const dayOfMonth = date.getDate();
+            const filterName = `day-${dayNum}` as DateFilter;
+            return (
+              <DateModeButton
+                key={filterName}
+                label={
+                  <>
+                    <span className="font-bold block mb-1">{dayName}</span>
+                    <span className="text-base block">{dayOfMonth}</span>
+                  </>
+                }
+                onClick={() => onDateFilterChange(filterName)}
+                isActive={currentDateFilter === filterName}
+                debugMode={debugMode}
+              />
+            );
+          })}
+          
+          {/* Next 14 days button */}
+          <DateModeButton
+            label={
+                <>
+                    <span className="font-bold block mb-1">14 Days</span>
+                    <span className="text-base block">View</span>
+                </>
+            }
+            onClick={() => onDateFilterChange('next-14-days')}
+            isActive={currentDateFilter === 'next-14-days'}
+            debugMode={debugMode}
+          />
+        </div>
       </div>
     </div>
   );
