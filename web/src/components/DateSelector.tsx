@@ -42,7 +42,7 @@ export function DateSelector({ currentDateFilter, onDateFilterChange, debugMode 
       {/* Horizontal scrolling container */}
       <div
         ref={scrollContainerRef}
-        className="flex flex-nowrap overflow-x-auto touch-pan-x py-1.5 px-2 -mx-2 scrollbar-hide bg-white dark:bg-gray-800"
+        className="flex flex-nowrap overflow-x-auto touch-pan-x py-1.5 px-2 -mx-2 scrollbar-hide bg-gray-800"
       >
         {/* Today button */}
         <DateModeButton

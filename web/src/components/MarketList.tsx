@@ -154,7 +154,7 @@ export function MarketList({
                     {/* Fallback to initials if no image or image fails to load */}
                     <div 
                       className={cn(
-                        "absolute inset-0 w-full h-full items-center justify-center text-blue-800 dark:text-blue-200 font-bold text-xs",
+                        "absolute inset-0 w-full h-full items-center justify-center text-blue-200 font-bold text-xs",
                         market.market_ref ? "hidden" : "flex"
                       )}
                     >
@@ -165,7 +165,7 @@ export function MarketList({
                   <div className="flex-grow">
                     {/* Title only */}
                     <div className="flex justify-between items-start mb-0.5">
-                      <h3 className="market-name text-lg font-semibold text-gray-900 dark:text-gray-100 break-words leading-normal">{market.name}</h3>
+                      <h3 className="market-name text-lg font-semibold text-gray-100 break-words leading-normal">{market.name}</h3>
                     </div>
                     
                     {/* Open On (Soon mode) or Next Open (All modes) - hidden in Week mode */}
@@ -183,7 +183,7 @@ export function MarketList({
                     
                     {/* Regular opening hours */}
                     {market.opening_hours && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-gray-400 mt-1">
                         <span>Opening hours:</span> {humanizeOpeningHours(market.opening_hours)}
                       </p>
                     )}

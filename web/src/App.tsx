@@ -328,7 +328,7 @@ function App() {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
-    <div className="app flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="app flex flex-col h-screen bg-gray-900 text-gray-100">
       {/* Test Components - Only shown when VITE_SHOW_TAILWIND_TESTS=true */}
       {showTailwindTests && (
         <div className="fixed top-4 right-4 z-50 flex flex-col gap-4">

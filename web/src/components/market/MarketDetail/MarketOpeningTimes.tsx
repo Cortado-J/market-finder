@@ -91,7 +91,7 @@ export function MarketOpeningTimes({
               {nextOpenings.map((opening, index) => (
                 <div 
                   key={index} 
-                  className="bg-blue-50 dark:bg-blue-900/30 rounded-md p-2"
+                  className="bg-blue-900/30 rounded-md p-2"
                 >
                   <DetailText isDebugMode={isDebugMode}>
                     {formatOpeningTime(opening)}

@@ -60,7 +60,7 @@ export function WeekdaySelector({ selectedDays = [], onChange, debugMode }: Week
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap gap-2 py-1.5 text-gray-900 dark:text-gray-100">
+      <div className="flex flex-wrap gap-2 py-1.5 text-gray-100">
         {/* All button */}
         <DateModeButton
           label="All"

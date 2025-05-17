@@ -2,17 +2,11 @@ import tailwindScrollbarHide from 'tailwind-scrollbar-hide';
 
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: 'class', // Enable dark mode with class strategy
   plugins: [
     tailwindScrollbarHide,
     function({ addBase, theme }) {
       addBase({
         '*': {
-          '--scrollbar-track': theme('colors.gray.100'),
-          '--scrollbar-thumb': theme('colors.gray.300'),
-          '--scrollbar-thumb-hover': theme('colors.gray.400'),
-        },
-        '.dark *': {
           '--scrollbar-track': theme('colors.gray.800'),
           '--scrollbar-thumb': theme('colors.gray.600'),
           '--scrollbar-thumb-hover': theme('colors.gray.500'),

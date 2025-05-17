@@ -27,7 +27,7 @@ export function DateWeekControls({
 
   return (
     <div 
-      className={cn("z-30 bg-white dark:bg-gray-800 overflow-hidden", mainClass)}
+      className={cn("z-30 bg-gray-800 overflow-hidden", mainClass)}
     >
       {currentWhenMode === 'soon' && (
         <div className={cn("px-4 pt-3 pb-3", soonContainerClass)}>
