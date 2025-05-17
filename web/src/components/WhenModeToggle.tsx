@@ -22,16 +22,20 @@ export function WhenModeToggle({
   };
 
   return (
-    <div className="flex space-x-3 when-mode-toggle">
+    <div className="inline-flex bg-gray-700 rounded-lg p-1">
       <button
-        className={`filter-button ${mode === 'soon' ? 'active' : ''}`}
         onClick={() => handleModeChange('soon')}
+        className={`px-4 py-2 rounded-md transition-colors ${mode === 'soon' 
+          ? 'bg-gray-600 text-white' 
+          : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
       >
         Soon
       </button>
       <button
-        className={`filter-button ${mode === 'week' ? 'active' : ''}`}
         onClick={() => handleModeChange('week')}
+        className={`px-4 py-2 rounded-md transition-colors ${mode === 'week' 
+          ? 'bg-gray-600 text-white' 
+          : 'bg-transparent text-gray-300 hover:bg-gray-700'}`}
       >
         Week
       </button>

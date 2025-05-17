@@ -294,7 +294,7 @@ export function MarketDetail({ market, onBack, onEdit, isDebugMode = false, sess
           </button>
 
           {/* Title */}
-          <h2 className="flex-grow text-center text-lg font-semibold text-gray-700 dark:text-gray-200 truncate px-2">
+          <h2 className="flex-grow text-center text-2xl font-semibold text-white truncate px-2">
             {market.name}
           </h2>
 

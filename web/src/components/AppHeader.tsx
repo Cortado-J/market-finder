@@ -87,7 +87,7 @@ export function AppHeader({
         </div>
 
         {/* VIEW toggle: List vs Map */}
-        <div className="inline-flex bg-gray-700 rounded p-1">
+        <div className="inline-flex bg-gray-700 rounded-lg p-1">
           <button
             onClick={() => setViewMode('list')}
             className={`px-4 py-2 rounded-md transition-colors ${viewMode === 'list' 
